@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prototipo Ventanas PVC - V15 (Final Oscilobatiente)</title>
+    <style>
+        /* Estilos generales */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
+        
+        /* Contenedor principal */
+        .container { display: flex; flex-wrap: nowrap; gap: 20px; max-width: 1450px; margin: 0 auto; align-items: flex-start;}
+        
+        /* Panel de controles */
+        .panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 380px; flex-shrink: 0; display: flex; flex-direction: column; max-height: 95vh; overflow-y: auto; box-sizing: border-box;}
+        
+        /* Contenedor del Dibujo */
+        .canvas-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex-grow: 1; min-width: 0; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; box-sizing: border-box;}
+        canvas { background: #fff; max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 4px;}
+        
+        label { display: block; margin-top: 12px; font-weight: bold; font-size: 13px; color: #555; }
+        input[type="number"], input[type="text"], select { width: 100%; padding: 10px 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px;}
+        
+        /* Grupo de inputs (las 3 medidas) */
+        .input-group { display: flex; gap: 5px; margin-top: 4px; }
+        .input-group input { margin-top: 0; text-align: center; flex: 1; min-width: 0; }
+        .min-alert { font-size: 11px; color: #059669; font-weight: bold; margin-top: 4px; display: block; }
+        
+        /* Toggles Modulares */
+        .toggle-container { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; margin-top: 10px; }
+        .toggle-label { display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 0; font-size: 14px; color: #0f172a; font-weight: bold;}
+        .toggle-label input { width: auto; margin: 0; transform: scale(1.3); cursor: pointer; }
+        .sub-inputs { padding-top: 12px; border-top: 1px dashed #cbd5e1; margin-top: 12px; display: none; }
+        .sub-group { margin-top: 8px; padding-left: 10px; border-left: 2px solid #0ea5e9; }
+        
+        button { border: none; padding: 14px 15px; margin-top: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: background 0.3s; color: white; }
+        .btn-primary { background: #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-primary:hover { background: #047857; }
+        .btn-pdf { background: #dc2626; width: auto; padding: 12px 25px; margin-bottom: 2px; }
+        .btn-pdf:hover { background: #b91c1c; }
+        
+        h2 { margin-top: 0; font-size: 16px; color: #0066cc; border-bottom: 2px solid #f0f2f5; padding-bottom: 8px; margin-bottom: 5px;}
+        .seccion { margin-bottom: 20px; }
+
+        .galeria-miniaturas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; width: 100%; justify-content: center;}
+        .miniatura-item { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; width: 120px; text-align: center; position: relative;}
+        .miniatura-item img { max-width: 100%; height: auto; border: 1px solid #e2e8f0; }
+        .miniatura-item span { display: block; font-size: 10px; margin-top: 5px; font-weight: bold; word-wrap: break-word;}
+        .btn-eliminar { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; font-weight: bold; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.3);}
+
+        /* Ajustes de Impresión (PDF) */
+        #printArea { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { display: block; position: absolute; left: 0; top: 0; width: 100%; }
+            .print-page { page-break-after: always; text-align: center; padding-top: 20px; }
+            .print-page img { max-width: 100%; max-height: 95vh; }
+        }
+
+        /* DISEÑO RESPONSIVO PARA CELULARES Y TABLETS PEQUEÑAS */
+        @media (max-width: 950px) {
+            body { padding: 5px; }
+            .container { flex-direction: column; flex-wrap: wrap; gap: 10px; }
+            .panel { width: 100%; max-height: none; overflow-y: visible; padding: 12px;}
+            .canvas-container { width: 100%; padding: 10px; }
+            .pdf-controls { flex-direction: column; align-items: stretch !important; gap: 10px;}
+            .btn-pdf { width: 100%; }
+            #nombrePDF { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- PANEL DE CONTROLES -->
+        <div class="panel">
+            <div class="seccion">
+                <h2>1. Datos del Plano</h2>
+                <input type="text" id="titulo" value="Ventana Principal" placeholder="Ej. Ventana Dormitorio" onkeyup="dibujar()" onchange="dibujar()">
+            </div>
+
+            <div class="seccion">
+                <h2>2. Medidas del Vano (mm)</h2>
+                <label>Ancho (Sup / Medio / Inf):</label>
+                <div class="input-group">
+                    <input type="number" id="ancho1" value="1500" onchange="dibujar()" placeholder="Req">
+                    <input type="number" id="ancho2" value="" onchange="dibujar()" placeholder="Opc">
+                    <input type="number" id="ancho3" value="" onchange="dibujar()" placeholder="Opc">
+                </div>
+                <span class="min-alert">A fabricar: <span id="anchoFinal">1500</span> mm</span>
+                
+                <label>Alto (Izq / Centro / Der):</label>
+                <div class="input-group">
+                    <input type="number" id="alto1" value="1200" onchange="dibujar()" placeholder="Req">
+                    <input type="number" id="alto2" value="" onchange="dibujar()" placeholder="Opc">
+                    <input type="number" id="alto3" value="" onchange="dibujar()" placeholder="Opc">
+                </div>
+                <span class="min-alert">A fabricar: <span id="altoFinal">1200</span> mm</span>
+            </div>
+
+            <div class="seccion">
+                <h2>3. Estructura Modular (Fijos)</h2>
+                
+                <div class="toggle-container">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="chkBanderola" onchange="toggleBanderola()">
+                        Banderolas (Travesaños)
+                    </label>
+                    <div id="divBanderola" class="sub-inputs">
+                        <select id="tipoBanderola" onchange="toggleBanderola()">
+                            <option value="sup">Solo Superior</option>
+                            <option value="inf">Solo Inferior</option>
+                            <option value="ambos">Superior e Inferior</option>
+                        </select>
+                        <div id="divBandSup" class="sub-group">
+                            <label>Alto Banderola Sup. (mm):</label>
+                            <input type="number" id="altoBandSup" value="400" onchange="dibujar()">
+                        </div>
+                        <div id="divBandInf" class="sub-group">
+                            <label>Alto Banderola Inf. (mm):</label>
+                            <input type="number" id="altoBandInf" value="400" onchange="dibujar()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="chkLaterales" onchange="toggleLaterales()">
+                        Fijos Laterales (Postes)
+                    </label>
+                    <div id="divLaterales" class="sub-inputs">
+                        <select id="tipoLaterales" onchange="toggleLaterales()">
+                            <option value="ambos">Izquierdo y Derecho</option>
+                            <option value="izq">Solo Izquierdo</option>
+                            <option value="der">Solo Derecho</option>
+                        </select>
+                        <div id="divLatIzq" class="sub-group">
+                            <label>Ancho Fijo Izquierdo (mm):</label>
+                            <input type="number" id="latIzq" value="450" onchange="dibujar()">
+                        </div>
+                        <div id="divLatDer" class="sub-group">
+                            <label>Ancho Fijo Derecho (mm):</label>
+                            <input type="number" id="latDer" value="450" onchange="dibujar()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="chkFijoParcial" onchange="toggleFijoParcial()">
+                        Fijo Parcial (Solo un lado)
+                    </label>
+                    <div id="divFijoParcial" class="sub-inputs">
+                        <label>Ubicación:</label>
+                        <select id="ladoFijoParcial" onchange="dibujar()">
+                            <option value="izq">En Paño Izquierdo</option>
+                            <option value="der">En Paño Derecho</option>
+                        </select>
+                        <select id="posFijoParcial" onchange="dibujar()" style="margin-top: 5px;">
+                            <option value="inf">Fijo Inferior (Abajo)</option>
+                            <option value="sup">Fijo Superior (Arriba)</option>
+                        </select>
+                        <div class="sub-group">
+                            <label>Alto Fijo Parcial (mm):</label>
+                            <input type="number" id="altoFijoParcial" value="400" onchange="dibujar()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="seccion">
+                <h2>4. Hojas Centrales</h2>
+                <label>Posición Eje Central (0 = Solo Perímetro):</label>
+                <input type="number" id="poste" value="750" onchange="dibujar()">
+                
+                <div class="toggle-container" style="margin-top: 15px; border-color: #0ea5e9; background: #e0f2fe;">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="chkFijoCentro" onchange="toggleFijoCentro()">
+                        Fijo Central (Entre hojas)
+                    </label>
+                    <div id="divFijoCentro" class="sub-inputs" style="border-top-color: #7dd3fc;">
+                        <label>Ancho Fijo Central (mm):</label>
+                        <input type="number" id="anchoFijoCentro" value="600" onchange="dibujar()">
+                    </div>
+                </div>
+                
+                <label style="margin-top: 15px;">Paño Izquierdo:</label>
+                <select id="tipoIzq" onchange="dibujar()">
+                    <option value="fijo" selected>Paño Fijo</option>
+                    <option value="corrediza_izq">Corrediza (←)</option>
+                    <option value="corrediza_der">Corrediza (→)</option>
+                    <option value="bat_izq">Batiente (Manija Der)</option>
+                    <option value="bat_der">Batiente (Manija Izq)</option>
+                    <option value="oscilobat_izq">Oscilobatiente (Manija Der)</option>
+                    <option value="oscilobat_der">Oscilobatiente (Manija Izq)</option>
+                    <option value="proyectante">Proyectante (Manija Abajo)</option>
+                    <option value="oscilante">Oscilante (Manija Arriba)</option>
+                </select>
+
+                <label>Paño Derecho:</label>
+                <select id="tipoDer" onchange="dibujar()">
+                    <option value="fijo" selected>Paño Fijo</option>
+                    <option value="corrediza_der">Corrediza (→)</option>
+                    <option value="corrediza_izq">Corrediza (←)</option>
+                    <option value="bat_der">Batiente (Manija Izq)</option>
+                    <option value="bat_izq">Batiente (Manija Der)</option>
+                    <option value="oscilobat_der">Oscilobatiente (Manija Izq)</option>
+                    <option value="oscilobat_izq">Oscilobatiente (Manija Der)</option>
+                    <option value="proyectante">Proyectante (Manija Abajo)</option>
+                    <option value="oscilante">Oscilante (Manija Arriba)</option>
+                </select>
+            </div>
+
+            <div style="margin-top: auto;">
+                <button class="btn-primary" onclick="guardarYDescargar()">💾 Guardar Reporte + Bajar PNG</button>
+            </div>
+        </div>
+        
+        <!-- LIENZO Y REPORTE -->
+        <div class="canvas-container">
+            <canvas id="lienzo" width="1000" height="750"></canvas>
+            
+            <div style="width: 100%; border-top: 2px dashed #ccc; margin-top: 30px; padding-top: 20px;">
+                <div class="pdf-controls" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div style="text-align: left; flex-grow: 1; padding-right: 10px;">
+                        <h2 style="margin-bottom: 5px;">📦 Reporte de Obra (PDF Local)</h2>
+                        <label style="margin-top: 10px; font-size: 13px;">Nombre de archivo PDF:</label>
+                        <input type="text" id="nombrePDF" value="Reporte_Medidas_Obra" placeholder="Ej. Proyecto_Los_Olivos">
+                    </div>
+                    <button class="btn-pdf" onclick="imprimirPDF()" id="btnImprimir">📄 Imprimir PDF</button>
+                </div>
+                <div class="galeria-miniaturas" id="galeria"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="printArea"></div>
+
+    <script>
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');
+        
+        const anchoMarco = 60; 
+        const anchoHoja = 45;  
+        const anchoPoste = 60; 
+        let listaPlanos = [];
+
+        function toggleBanderola() {
+            let active = document.getElementById('chkBanderola').checked;
+            document.getElementById('divBanderola').style.display = active ? 'block' : 'none';
+            let tipo = document.getElementById('tipoBanderola').value;
+            document.getElementById('divBandSup').style.display = (tipo === 'sup' || tipo === 'ambos') ? 'block' : 'none';
+            document.getElementById('divBandInf').style.display = (tipo === 'inf' || tipo === 'ambos') ? 'block' : 'none';
+            dibujar();
+        }
+
+        function toggleLaterales() {
+            let active = document.getElementById('chkLaterales').checked;
+            document.getElementById('divLaterales').style.display = active ? 'block' : 'none';
+            let tipo = document.getElementById('tipoLaterales').value;
+            document.getElementById('divLatIzq').style.display = (tipo === 'izq' || tipo === 'ambos') ? 'block' : 'none';
+            document.getElementById('divLatDer').style.display = (tipo === 'der' || tipo === 'ambos') ? 'block' : 'none';
+            dibujar();
+        }
+
+        function toggleFijoParcial() {
+            document.getElementById('divFijoParcial').style.display = document.getElementById('chkFijoParcial').checked ? 'block' : 'none';
+            dibujar();
+        }
+
+        function toggleFijoCentro() {
+            document.getElementById('divFijoCentro').style.display = document.getElementById('chkFijoCentro').checked ? 'block' : 'none';
+            dibujar();
+        }
+
+        function getMinimo(id1, id2, id3) {
+            let v1 = document.getElementById(id1).value;
+            let v2 = document.getElementById(id2).value;
+            let v3 = document.getElementById(id3).value;
+            let arr = [];
+            if (v1.trim() !== "" && !isNaN(v1) && parseFloat(v1) > 0) arr.push(parseFloat(v1));
+            if (v2.trim() !== "" && !isNaN(v2) && parseFloat(v2) > 0) arr.push(parseFloat(v2));
+            if (v3.trim() !== "" && !isNaN(v3) && parseFloat(v3) > 0) arr.push(parseFloat(v3));
+            return arr.length > 0 ? Math.min(...arr) : 0;
+        }
+
+        function dibujarCota(x1, y1, x2, y2, texto, isVertical) {
+            if(Math.abs(x2-x1) < 20 && !isVertical) return; 
+            if(Math.abs(y2-y1) < 20 && isVertical) return;
+
+            ctx.save();
+            ctx.strokeStyle = '#333'; ctx.fillStyle = '#333'; ctx.lineWidth = 1.5;
+            ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+            const tick = 8;
+            ctx.beginPath(); ctx.moveTo(x1 - tick, y1 + tick); ctx.lineTo(x1 + tick, y1 - tick); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x2 - tick, y2 + tick); ctx.lineTo(x2 + tick, y2 - tick); ctx.stroke();
+            
+            let txtW = ctx.measureText(texto).width + 12;
+            if (!isVertical) { 
+                ctx.fillStyle = "rgba(255,255,255,0.85)";
+                ctx.fillRect(x1 + (x2-x1)/2 - txtW/2, y1 - 24, txtW, 20);
+                ctx.fillStyle = "#333";
+                ctx.fillText(texto, x1 + (x2 - x1) / 2, y1 - 14);
+            } else { 
+                ctx.translate(x1 - 22, y1 + (y2 - y1) / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillStyle = "rgba(255,255,255,0.85)";
+                ctx.fillRect(-txtW/2, -10, txtW, 20);
+                ctx.fillStyle = "#333";
+                ctx.fillText(texto, 0, 0);
+            }
+            ctx.restore();
+        }
+
+        function dibujarSimbolo(x, y, w, h, tipo) {
+            ctx.save();
+            if (tipo === 'bat_izq' || tipo === 'bat_der' || tipo === 'proyectante' || tipo === 'oscilante' || tipo.startsWith('oscilobat')) {
+                ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.5; ctx.setLineDash([8, 6]);
+                
+                // Aperturas laterales
+                if (tipo === 'bat_izq' || tipo === 'oscilobat_izq') { 
+                    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + h/2); ctx.lineTo(x, y + h); ctx.stroke(); 
+                } 
+                if (tipo === 'bat_der' || tipo === 'oscilobat_der') { 
+                    ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x, y + h/2); ctx.lineTo(x + w, y + h); ctx.stroke(); 
+                } 
+                
+                // Aperturas verticales
+                if (tipo === 'proyectante') { // Manija Abajo (Vértice a la manija)
+                    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w/2, y + h); ctx.lineTo(x + w, y); ctx.stroke(); 
+                }
+                if (tipo === 'oscilante' || tipo.startsWith('oscilobat')) {  // Manija Arriba
+                    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + w/2, y); ctx.lineTo(x + w, y + h); ctx.stroke(); 
+                }
+            } 
+            else if (tipo.startsWith('corrediza')) {
+                ctx.strokeStyle = '#e11d48'; ctx.fillStyle = '#e11d48'; ctx.lineWidth = 4; ctx.setLineDash([]); 
+                let yMid = y + h/2; let xCenter = x + w/2; let arrowLen = w * 0.3; 
+                ctx.beginPath();
+                if (tipo === 'corrediza_izq') {
+                    ctx.moveTo(xCenter + arrowLen/2, yMid); ctx.lineTo(xCenter - arrowLen/2, yMid); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(xCenter - arrowLen/2, yMid); ctx.lineTo(xCenter - arrowLen/2 + 20, yMid - 12); ctx.lineTo(xCenter - arrowLen/2 + 20, yMid + 12); ctx.fill();
+                } else {
+                    ctx.moveTo(xCenter - arrowLen/2, yMid); ctx.lineTo(xCenter + arrowLen/2, yMid); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(xCenter + arrowLen/2, yMid); ctx.lineTo(xCenter + arrowLen/2 - 20, yMid - 12); ctx.lineTo(xCenter + arrowLen/2 - 20, yMid + 12); ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        function dibujarSeccion(x, y, w, h, tipo, scale) {
+            const hojaScaled = anchoHoja * scale;
+            if (tipo !== 'fijo' && tipo !== 'fijo_puro') {
+                ctx.fillStyle = "#f8fafc"; ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+                ctx.fillStyle = "#e0f2fe"; ctx.fillRect(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2); ctx.strokeRect(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2);
+                dibujarSimbolo(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2, tipo);
+            } else {
+                ctx.fillStyle = "#e0f2fe"; ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+            }
+        }
+
+        function dibujar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let titulo = document.getElementById('titulo').value || "Sin_Titulo";
+            
+            let anchoReal = getMinimo('ancho1', 'ancho2', 'ancho3');
+            document.getElementById('anchoFinal').innerText = anchoReal;
+            let altoReal = getMinimo('alto1', 'alto2', 'alto3');
+            document.getElementById('altoFinal').innerText = altoReal;
+
+            let posteInput = document.getElementById('poste').value.trim();
+            let posteReal = (posteInput !== "" && !isNaN(posteInput)) ? parseFloat(posteInput) : 0;
+            let tipoIzq = document.getElementById('tipoIzq').value;
+            let tipoDer = document.getElementById('tipoDer').value;
+            let esCorrediza = tipoIzq.startsWith('corrediza') || tipoDer.startsWith('corrediza');
+
+            let hasBanderola = document.getElementById('chkBanderola').checked;
+            let tipoBanderola = document.getElementById('tipoBanderola').value;
+            let hasBandSup = hasBanderola && (tipoBanderola === 'sup' || tipoBanderola === 'ambos');
+            let hasBandInf = hasBanderola && (tipoBanderola === 'inf' || tipoBanderola === 'ambos');
+            let bandSupReal = parseFloat(document.getElementById('altoBandSup').value) || 0;
+            let bandInfReal = parseFloat(document.getElementById('altoBandInf').value) || 0;
+
+            let hasLaterales = document.getElementById('chkLaterales').checked;
+            let tipoLaterales = document.getElementById('tipoLaterales').value;
+            let hasLatIzq = hasLaterales && (tipoLaterales === 'izq' || tipoLaterales === 'ambos');
+            let hasLatDer = hasLaterales && (tipoLaterales === 'der' || tipoLaterales === 'ambos');
+            let latIzqReal = parseFloat(document.getElementById('latIzq').value) || 0;
+            let latDerReal = parseFloat(document.getElementById('latDer').value) || 0;
+
+            let hasParcial = document.getElementById('chkFijoParcial').checked;
+            let ladoParcial = document.getElementById('ladoFijoParcial').value;
+            let posParcial = document.getElementById('posFijoParcial').value;
+            let parcialAltoReal = parseFloat(document.getElementById('altoFijoParcial').value) || 0;
+
+            let hasFijoCentro = document.getElementById('chkFijoCentro').checked;
+            let anchoFijoCentroReal = parseFloat(document.getElementById('anchoFijoCentro').value) || 0;
+
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+            ctx.fillText("Ref: " + titulo, 40, 30);
+
+            if(anchoReal <= 0 || altoReal <= 0) return;
+
+            const mgTop = 110, mgBottom = 90, mgLeft = 110, mgRight = 80;
+            const drawW = canvas.width - mgLeft - mgRight;
+            const drawH = canvas.height - mgTop - mgBottom;
+            const scaleX = drawW / anchoReal;
+            const scaleY = drawH / altoReal;
+            const scale = Math.min(scaleX, scaleY); 
+
+            const w = anchoReal * scale;
+            const h = altoReal * scale;
+            const x0 = mgLeft + (drawW - w) / 2;
+            const y0 = mgTop + (drawH - h) / 2;
+
+            const marcoS = anchoMarco * scale;
+            const posteS = anchoPoste * scale;
+            const hojaS = anchoHoja * scale;
+
+            // MARCO EXTERIOR
+            ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+            ctx.fillRect(x0, y0, w, h); ctx.strokeRect(x0, y0, w, h);
+            ctx.lineWidth = 1.5;
+
+            if (posteReal === 0 && !hasBanderola && !hasLaterales) {
+                ctx.fillStyle = "#e0f2fe"; ctx.fillRect(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
+                ctx.strokeRect(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
+                dibujarCota(x0, y0 - 45, x0 + w, y0 - 45, anchoReal + ' mm', false); 
+                dibujarCota(x0 - 55, y0, x0 - 55, y0 + h, altoReal + ' mm', true);
+                return; 
+            }
+
+            let ix = x0 + marcoS; let iy = y0 + marcoS;
+            let iendX = x0 + w - marcoS; let iendY = y0 + h - marcoS;
+
+            // LATERALES
+            if (hasLatIzq && latIzqReal > 0) {
+                let cPoste = x0 + latIzqReal * scale;
+                let fW = cPoste - posteS/2 - ix;
+                dibujarSeccion(ix, iy, fW, iendY - iy, 'fijo_puro', scale);
+                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                ctx.fillRect(cPoste - posteS/2, iy, posteS, iendY - iy); ctx.strokeRect(cPoste - posteS/2, iy, posteS, iendY - iy);
+                ctx.lineWidth = 1.5;
+                ix = cPoste + posteS/2;
+            }
+            if (hasLatDer && latDerReal > 0) {
+                let cPoste = x0 + w - latDerReal * scale;
+                let fW = iendX - (cPoste + posteS/2);
+                dibujarSeccion(cPoste + posteS/2, iy, fW, iendY - iy, 'fijo_puro', scale);
+                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                ctx.fillRect(cPoste - posteS/2, iy, posteS, iendY - iy); ctx.strokeRect(cPoste - posteS/2, iy, posteS, iendY - iy);
+                ctx.lineWidth = 1.5;
+                iendX = cPoste - posteS/2;
+            }
+
+            let iw = iendX - ix;
+
+            // BANDEROLAS
+            if (hasBandSup && bandSupReal > 0) {
+                let cTrav = y0 + bandSupReal * scale;
+                let fH = cTrav - posteS/2 - iy;
+                dibujarSeccion(ix, iy, iw, fH, 'fijo_puro', scale);
+                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                ctx.fillRect(ix, cTrav - posteS/2, iw, posteS); ctx.strokeRect(ix, cTrav - posteS/2, iw, posteS);
+                ctx.lineWidth = 1.5;
+                iy = cTrav + posteS/2;
+            }
+            if (hasBandInf && bandInfReal > 0) {
+                let cTrav = y0 + h - bandInfReal * scale;
+                let fH = iendY - (cTrav + posteS/2);
+                dibujarSeccion(ix, cTrav + posteS/2, iw, fH, 'fijo_puro', scale);
+                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                ctx.fillRect(ix, cTrav - posteS/2, iw, posteS); ctx.strokeRect(ix, cTrav - posteS/2, iw, posteS);
+                ctx.lineWidth = 1.5;
+                iendY = cTrav - posteS/2;
+            }
+
+            let ih = iendY - iy;
+
+            // AREA CENTRAL
+            function dibujarColumnaParcial(xC, yC, wC, hC, tipo, isIzq) {
+                if (hasParcial && ladoParcial === (isIzq ? 'izq' : 'der') && parcialAltoReal > 0 && !hasFijoCentro) {
+                    let cTravParcial;
+                    if (posParcial === 'sup') {
+                        cTravParcial = y0 + parcialAltoReal * scale;
+                        if (cTravParcial > yC && cTravParcial < yC + hC) {
+                            let fH = cTravParcial - posteS/2 - yC;
+                            dibujarSeccion(xC, yC, wC, fH, 'fijo_puro', scale);
+                            ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                            ctx.fillRect(xC, cTravParcial - posteS/2, wC, posteS); ctx.strokeRect(xC, cTravParcial - posteS/2, wC, posteS);
+                            ctx.lineWidth = 1.5;
+                            dibujarSeccion(xC, cTravParcial + posteS/2, wC, (yC + hC) - (cTravParcial + posteS/2), tipo, scale);
+                            
+                            let cX = isIzq ? (x0 - 105) : (x0 + w + 75);
+                            dibujarCota(cX, y0, cX, y0 + (parcialAltoReal*scale), parcialAltoReal + ' mm', true);
+                            return;
+                        }
+                    } else { // inf
+                        cTravParcial = y0 + h - parcialAltoReal * scale;
+                        if (cTravParcial > yC && cTravParcial < yC + hC) {
+                            let fH = (yC + hC) - (cTravParcial + posteS/2);
+                            dibujarSeccion(xC, yC, wC, cTravParcial - posteS/2 - yC, tipo, scale);
+                            ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                            ctx.fillRect(xC, cTravParcial - posteS/2, wC, posteS); ctx.strokeRect(xC, cTravParcial - posteS/2, wC, posteS);
+                            ctx.lineWidth = 1.5;
+                            dibujarSeccion(xC, cTravParcial + posteS/2, wC, fH, 'fijo_puro', scale);
+                            
+                            let cX = isIzq ? (x0 - 105) : (x0 + w + 75);
+                            dibujarCota(cX, y0 + h - (parcialAltoReal*scale), cX, y0 + h, parcialAltoReal + ' mm', true);
+                            return;
+                        }
+                    }
+                }
+                dibujarSeccion(xC, yC, wC, hC, tipo, scale);
+            }
+
+            if (posteReal > 0 && iw > 0 && ih > 0) {
+                let cEje = x0 + posteReal * scale;
+                cEje = Math.max(ix + posteS, Math.min(iendX - posteS, cEje));
+
+                if (hasFijoCentro && anchoFijoCentroReal > 0) {
+                    // SISTEMA DE 3 HOJAS (Fijo Central)
+                    let wFC = anchoFijoCentroReal * scale;
+                    let xPoste1 = cEje - wFC/2;
+                    let xPoste2 = cEje + wFC/2;
+                    
+                    xPoste1 = Math.max(ix + posteS, xPoste1);
+                    xPoste2 = Math.min(iendX - posteS, Math.max(xPoste1 + posteS, xPoste2));
+
+                    if (esCorrediza) {
+                        let wIzq = (xPoste1 - ix) + (hojaS / 2);
+                        let xCentro = xPoste1 - (hojaS / 2);
+                        let wCentro = (xPoste2 - xPoste1) + hojaS;
+                        let xDer = xPoste2 - (hojaS / 2);
+                        let wDer = iendX - xDer;
+                        
+                        dibujarSeccion(xCentro, iy, wCentro, ih, 'fijo', scale); // Centro
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true); // Izq
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false); // Der
+                    } else {
+                        let wIzq = (xPoste1 - posteS/2) - ix;
+                        let xDer = xPoste2 + posteS/2;
+                        let wDer = iendX - xDer;
+                        
+                        dibujarSeccion(xPoste1 + posteS/2, iy, xPoste2 - xPoste1 - posteS, ih, 'fijo_puro', scale);
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
+                        
+                        ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                        ctx.fillRect(xPoste1 - posteS/2, iy, posteS, ih); ctx.strokeRect(xPoste1 - posteS/2, iy, posteS, ih);
+                        ctx.fillRect(xPoste2 - posteS/2, iy, posteS, ih); ctx.strokeRect(xPoste2 - posteS/2, iy, posteS, ih);
+                        ctx.lineWidth = 1.5;
+                    }
+                    
+                    // Cotas para 3 hojas
+                    dibujarCota(x0, y0 + h + 45, xPoste1, y0 + h + 45, Math.round((xPoste1-x0)/scale) + ' mm', false); 
+                    dibujarCota(xPoste1, y0 + h + 45, xPoste2, y0 + h + 45, Math.round((xPoste2-xPoste1)/scale) + ' mm', false); 
+                    dibujarCota(xPoste2, y0 + h + 45, x0 + w, y0 + h + 45, Math.round((x0+w-xPoste2)/scale) + ' mm', false); 
+
+                } else {
+                    // SISTEMA DE 2 HOJAS NORMAL
+                    if (esCorrediza) {
+                        let wIzq = (cEje - ix) + (hojaS / 2);
+                        let xDer = cEje - (hojaS / 2);
+                        let wDer = iendX - xDer;
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
+                    } else {
+                        let wIzq = (cEje - posteS/2) - ix;
+                        let xDer = cEje + posteS/2;
+                        let wDer = iendX - xDer;
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
+                        
+                        ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+                        ctx.fillRect(cEje - posteS/2, iy, posteS, ih); ctx.strokeRect(cEje - posteS/2, iy, posteS, ih);
+                        ctx.lineWidth = 1.5;
+                    }
+                    // Cotas para 2 hojas
+                    dibujarCota(x0, y0 + h + 45, cEje, y0 + h + 45, Math.round((cEje-x0)/scale) + ' mm', false); 
+                    dibujarCota(cEje, y0 + h + 45, x0 + w, y0 + h + 45, Math.round((x0+w-cEje)/scale) + ' mm', false); 
+                }
+            } else if (posteReal === 0 && iw > 0 && ih > 0) {
+                dibujarColumnaParcial(ix, iy, iw, ih, tipoIzq, true);
+            }
+
+            // COTAS GENERALES EXTERNAS
+            dibujarCota(x0, y0 - 45, x0 + w, y0 - 45, anchoReal + ' mm', false); 
+            dibujarCota(x0 - 55, y0, x0 - 55, y0 + h, altoReal + ' mm', true); 
+
+            if(hasLatIzq && latIzqReal > 0) {
+                dibujarCota(x0, y0 + h + 80, x0 + (latIzqReal*scale), y0 + h + 80, latIzqReal + ' mm', false); 
+            }
+            if(hasLatDer && latDerReal > 0) {
+                dibujarCota(x0 + w - (latDerReal*scale), y0 + h + 80, x0 + w, y0 + h + 80, latDerReal + ' mm', false); 
+            }
+            
+            if(hasBandSup && bandSupReal > 0) {
+                dibujarCota(x0 - 85, y0, x0 - 85, y0 + (bandSupReal*scale), bandSupReal + ' mm', true);
+            }
+            if(hasBandInf && bandInfReal > 0) {
+                dibujarCota(x0 - 85, y0 + h - (bandInfReal*scale), x0 - 85, y0 + h, bandInfReal + ' mm', true);
+            }
+        }
+
+        function exportarIndividual() {
+            let tituloRaw = document.getElementById('titulo').value.trim() || "Plano_Ventana";
+            let nombreArchivo = tituloRaw.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png';
+            const link = document.createElement('a');
+            link.download = nombreArchivo; link.href = canvas.toDataURL('image/png'); link.click();
+        }
+        function guardarEnLista() {
+            let titulo = document.getElementById('titulo').value.trim() || "Sin Título";
+            listaPlanos.push({ titulo: titulo, img: canvas.toDataURL('image/png') });
+            renderizarGaleria();
+        }
+        function guardarYDescargar() {
+            exportarIndividual(); guardarEnLista();
+        }
+        function eliminarDeLista(index) {
+            listaPlanos.splice(index, 1); renderizarGaleria();
+        }
+
+        function renderizarGaleria() {
+            const galeria = document.getElementById('galeria');
+            const printArea = document.getElementById('printArea');
+            galeria.innerHTML = ''; printArea.innerHTML = ''; 
+
+            if (listaPlanos.length === 0) {
+                galeria.innerHTML = '<span style="color:#999; font-size:13px;">No hay planos guardados aún.</span>';
+                document.getElementById('btnImprimir').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('btnImprimir').style.display = 'block';
+
+            listaPlanos.forEach((plano, index) => {
+                const item = document.createElement('div');
+                item.className = 'miniatura-item';
+                item.innerHTML = `<button class="btn-eliminar" onclick="eliminarDeLista(${index})">X</button><img src="${plano.img}"><span>${plano.titulo}</span>`;
+                galeria.appendChild(item);
+
+                const printPage = document.createElement('div');
+                printPage.className = 'print-page';
+                printPage.innerHTML = `<img src="${plano.img}">`;
+                printArea.appendChild(printPage);
+            });
+        }
+        
+        function imprimirPDF() { 
+            if (listaPlanos.length === 0) {
+                alert("Primero debes guardar al menos un plano en la lista.");
+                return;
+            }
+            
+            let nombreReporte = document.getElementById('nombrePDF').value.trim();
+            if (nombreReporte === "") nombreReporte = "Reporte_de_Obra";
+            nombreReporte = nombreReporte.replace(/[^a-zA-Z0-9_\- ]/g, "_");
+
+            const tituloOriginal = document.title;
+            document.title = nombreReporte;
+
+            window.print();
+
+            setTimeout(() => {
+                document.title = tituloOriginal;
+            }, 1000);
+        }
+
+        window.onload = function() {
+            toggleBanderola(); toggleLaterales(); toggleFijoParcial(); toggleFijoCentro(); dibujar();
+        };
+    </script>
+</body>
+</html>
