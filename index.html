@@ -3,280 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prototipo Ventanas PVC - V15 (Final Oscilobatiente)</title>
+    <title>NEFUSAC - MEDICION VENTANAS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos generales */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
-        
-        /* Contenedor principal */
-        .container { display: flex; flex-wrap: nowrap; gap: 20px; max-width: 1450px; margin: 0 auto; align-items: flex-start;}
-        
-        /* Panel de controles */
-        .panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 380px; flex-shrink: 0; display: flex; flex-direction: column; max-height: 95vh; overflow-y: auto; box-sizing: border-box;}
-        
-        /* Contenedor del Dibujo */
-        .canvas-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex-grow: 1; min-width: 0; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; box-sizing: border-box;}
-        canvas { background: #fff; max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 4px;}
-        
-        label { display: block; margin-top: 12px; font-weight: bold; font-size: 13px; color: #555; }
-        input[type="number"], input[type="text"], select { width: 100%; padding: 10px 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px;}
-        
-        /* Grupo de inputs (las 3 medidas) */
-        .input-group { display: flex; gap: 5px; margin-top: 4px; }
-        .input-group input { margin-top: 0; text-align: center; flex: 1; min-width: 0; }
-        .min-alert { font-size: 11px; color: #059669; font-weight: bold; margin-top: 4px; display: block; }
-        
-        /* Toggles Modulares */
-        .toggle-container { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; margin-top: 10px; }
-        .toggle-label { display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 0; font-size: 14px; color: #0f172a; font-weight: bold;}
-        .toggle-label input { width: auto; margin: 0; transform: scale(1.3); cursor: pointer; }
-        .sub-inputs { padding-top: 12px; border-top: 1px dashed #cbd5e1; margin-top: 12px; display: none; }
-        .sub-group { margin-top: 8px; padding-left: 10px; border-left: 2px solid #0ea5e9; }
-        
-        button { border: none; padding: 14px 15px; margin-top: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: background 0.3s; color: white; }
-        .btn-primary { background: #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .btn-primary:hover { background: #047857; }
-        .btn-pdf { background: #dc2626; width: auto; padding: 12px 25px; margin-bottom: 2px; }
-        .btn-pdf:hover { background: #b91c1c; }
-        
-        h2 { margin-top: 0; font-size: 16px; color: #0066cc; border-bottom: 2px solid #f0f2f5; padding-bottom: 8px; margin-bottom: 5px;}
-        .seccion { margin-bottom: 20px; }
+        :root {
+            --bg-body: #0f172a;
+            --panel-bg: #1e293b;
+            --input-bg: #0f172a;
+            --border: #334155;
+            --primary: #0ea5e9;
+            --primary-hover: #0284c7;
+            --text-main: #f8fafc;
+            --text-label: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --success-hover: #059669;
+        }
 
-        .galeria-miniaturas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; width: 100%; justify-content: center;}
-        .miniatura-item { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; width: 120px; text-align: center; position: relative;}
-        .miniatura-item img { max-width: 100%; height: auto; border: 1px solid #e2e8f0; }
-        .miniatura-item span { display: block; font-size: 10px; margin-top: 5px; font-weight: bold; word-wrap: break-word;}
-        .btn-eliminar { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; font-weight: bold; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.3);}
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            padding: 15px;
+            color: var(--text-main);
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* Ajustes de Impresión (PDF) */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* Estructura Principal */
+        .layout {
+            display: flex;
+            gap: 20px;
+            flex-grow: 1;
+            max-width: 1500px;
+            margin: 0 auto;
+            width: 100%;
+            height: calc(100vh - 30px);
+        }
+
+        /* Panel Izquierdo */
+        .panel {
+            width: 420px;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .panel-header {
+            padding: 20px;
+            background: #111827;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .panel-header h1 { margin: 0; font-size: 20px; color: var(--primary); font-weight: 700; }
+
+        .panel-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            background: #111827;
+        }
+
+        /* Acordeones */
+        details {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        summary {
+            padding: 15px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-main);
+        }
+        summary::after { content: '▼'; font-size: 12px; color: var(--primary); }
+        details[open] summary { border-bottom: 1px solid var(--border); }
+        details[open] summary::after { content: '▲'; }
+        
+        .details-content { padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+
+        /* Formularios limpios */
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+        label { font-size: 12px; color: var(--text-label); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            transition: border 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--primary); outline: none; }
+
+        .form-group .hint { font-size: 11px; color: var(--success); font-weight: 600; text-align: right; margin-top: -4px;}
+
+        /* Botones */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: var(--success-hover); }
+        .btn-pdf { background: var(--danger); color: white; width: auto; padding: 12px 20px;}
+        .btn-pdf:hover { background: #dc2626; }
+
+        /* Contenedor Derecho */
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            min-width: 0;
+        }
+
+        .canvas-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas { max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 4px; }
+
+        .report-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            color: #1e293b;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .galeria-miniaturas { display: flex; flex-wrap: wrap; gap: 15px; }
+        .miniatura-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; width: 140px; text-align: center; position: relative; }
+        .miniatura-item img { max-width: 100%; height: auto; border: 1px solid #cbd5e1; border-radius: 4px;}
+        .miniatura-item span { display: block; font-size: 11px; margin-top: 8px; font-weight: 700; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .btn-eliminar { position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; font-weight: bold; }
+
+        /* IMPRESION NEFUSAC OFICIAL */
         #printArea { display: none; }
         @media print {
+            @page { size: A4 portrait; margin: 8mm; }
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
             #printArea { display: block; position: absolute; left: 0; top: 0; width: 100%; }
-            .print-page { page-break-after: always; text-align: center; padding-top: 20px; }
-            .print-page img { max-width: 100%; max-height: 95vh; }
+            body { background: white; margin: 0; padding: 0; font-family: Arial, sans-serif; color: black; }
+            
+            .print-document { width: 100%; }
+            
+            table.nefusac-form { width: 100%; border-collapse: collapse; border: 2px solid #000; font-size: 11px; table-layout: fixed; }
+            table.nefusac-form th, table.nefusac-form td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: middle; }
+            
+            .cell-title { text-align: center !important; font-weight: bold; font-size: 16px !important; letter-spacing: 1px;}
+            .cell-logo { text-align: center !important; font-weight: 900; font-size: 18px !important; width: 25%;}
+            .cell-meta { font-size: 9px !important; line-height: 1.4; width: 20%;}
+            .cell-header-dark { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; font-weight: bold; font-size: 12px !important; text-align: center !important;}
+            .cell-header-light { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; font-weight: bold; font-size: 10px !important; text-align: center !important;}
+            .cell-value { font-weight: normal; color: #1e293b;}
+            
+            /* Contenedor de cada ventana */
+            .window-block { page-break-inside: avoid; margin-bottom: 25px; border: 2px solid #000; border-top: none; }
+            .window-header { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; font-weight: bold; font-size: 13px !important; text-align: center !important; padding: 8px; border-bottom: 2px solid #000; }
+            .window-canvas { text-align: center !important; padding: 15px !important; background: #fff;}
+            .window-canvas img { max-width: 100%; max-height: 400px; object-fit: contain; }
+            
+            /* Firmas */
+            .cell-signatures { height: 70px; }
         }
 
-        /* DISEÑO RESPONSIVO PARA CELULARES Y TABLETS PEQUEÑAS */
-        @media (max-width: 950px) {
-            body { padding: 5px; }
-            .container { flex-direction: column; flex-wrap: wrap; gap: 10px; }
-            .panel { width: 100%; max-height: none; overflow-y: visible; padding: 12px;}
-            .canvas-container { width: 100%; padding: 10px; }
-            .pdf-controls { flex-direction: column; align-items: stretch !important; gap: 10px;}
-            .btn-pdf { width: 100%; }
-            #nombrePDF { max-width: 100%; }
+        /* RESPONSIVE CELULARES */
+        @media (max-width: 1024px) {
+            .layout { flex-direction: column; height: auto; }
+            .panel { width: 100%; max-height: none; }
+            .workspace { overflow: visible; }
+            .report-header { flex-direction: column; align-items: stretch; gap: 15px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- PANEL DE CONTROLES -->
+
+    <div class="layout">
+        <!-- PANEL IZQUIERDO -->
         <div class="panel">
-            <div class="seccion">
-                <h2>1. Datos del Plano</h2>
-                <input type="text" id="titulo" value="Ventana Principal" placeholder="Ej. Ventana Dormitorio" onkeyup="dibujar()" onchange="dibujar()">
+            <div class="panel-header">
+                <h1>NEFUSAC MEDICION</h1>
             </div>
-
-            <div class="seccion">
-                <h2>2. Medidas del Vano (mm)</h2>
-                <label>Ancho (Sup / Medio / Inf):</label>
-                <div class="input-group">
-                    <input type="number" id="ancho1" value="1500" onchange="dibujar()" placeholder="Req">
-                    <input type="number" id="ancho2" value="" onchange="dibujar()" placeholder="Opc">
-                    <input type="number" id="ancho3" value="" onchange="dibujar()" placeholder="Opc">
-                </div>
-                <span class="min-alert">A fabricar: <span id="anchoFinal">1500</span> mm</span>
+            
+            <div class="panel-body">
                 
-                <label>Alto (Izq / Centro / Der):</label>
-                <div class="input-group">
-                    <input type="number" id="alto1" value="1200" onchange="dibujar()" placeholder="Req">
-                    <input type="number" id="alto2" value="" onchange="dibujar()" placeholder="Opc">
-                    <input type="number" id="alto3" value="" onchange="dibujar()" placeholder="Opc">
-                </div>
-                <span class="min-alert">A fabricar: <span id="altoFinal">1200</span> mm</span>
-            </div>
-
-            <div class="seccion">
-                <h2>3. Estructura Modular (Fijos)</h2>
-                
-                <div class="toggle-container">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="chkBanderola" onchange="toggleBanderola()">
-                        Banderolas (Travesaños)
-                    </label>
-                    <div id="divBanderola" class="sub-inputs">
-                        <select id="tipoBanderola" onchange="toggleBanderola()">
-                            <option value="sup">Solo Superior</option>
-                            <option value="inf">Solo Inferior</option>
-                            <option value="ambos">Superior e Inferior</option>
-                        </select>
-                        <div id="divBandSup" class="sub-group">
-                            <label>Alto Banderola Sup. (mm):</label>
-                            <input type="number" id="altoBandSup" value="400" onchange="dibujar()">
+                <!-- 1. DATOS GLOBALES -->
+                <details>
+                    <summary>1. Datos Globales de Obra</summary>
+                    <div class="details-content">
+                        <div class="form-group"><label>Cliente o Razón Social</label><input type="text" id="g_cliente" placeholder="Ej. Constructora ABC"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>R.U.C.</label><input type="text" id="g_ruc"></div>
+                            <div class="form-group"><label>Fecha</label><input type="date" id="g_fecha"></div>
                         </div>
-                        <div id="divBandInf" class="sub-group">
-                            <label>Alto Banderola Inf. (mm):</label>
-                            <input type="number" id="altoBandInf" value="400" onchange="dibujar()">
+                        <div class="form-row">
+                            <div class="form-group"><label>Persona Contacto</label><input type="text" id="g_contacto"></div>
+                            <div class="form-group"><label>Teléfono</label><input type="text" id="g_telefono"></div>
+                        </div>
+                        <div class="form-group"><label>Dirección</label><input type="text" id="g_direccion"></div>
+                        <div class="form-group"><label>Personal Asignado</label><input type="text" id="g_personal" placeholder="Descripción de visita / Asistentes..."></div>
+                        
+                        <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;"></div>
+                        
+                        <div class="form-row">
+                            <div class="form-group"><label>Técnico (Nombre)</label><input type="text" id="g_tech_nombre"></div>
+                            <div class="form-group"><label>Técnico (DNI)</label><input type="text" id="g_tech_dni"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Ejec. Ventas (Nombre)</label><input type="text" id="g_ventas_nombre" value="Stefany Quispe"></div>
+                            <div class="form-group"><label>Ejec. Ventas (DNI)</label><input type="text" id="g_ventas_dni" value="70655997"></div>
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <div class="toggle-container">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="chkLaterales" onchange="toggleLaterales()">
-                        Fijos Laterales (Postes)
-                    </label>
-                    <div id="divLaterales" class="sub-inputs">
-                        <select id="tipoLaterales" onchange="toggleLaterales()">
-                            <option value="ambos">Izquierdo y Derecho</option>
-                            <option value="izq">Solo Izquierdo</option>
-                            <option value="der">Solo Derecho</option>
-                        </select>
-                        <div id="divLatIzq" class="sub-group">
-                            <label>Ancho Fijo Izquierdo (mm):</label>
-                            <input type="number" id="latIzq" value="450" onchange="dibujar()">
+                <!-- 2. FICHA TÉCNICA DE ESTA VENTANA -->
+                <details open>
+                    <summary>2. Ficha Técnica del Vano</summary>
+                    <div class="details-content">
+                        <div class="form-row">
+                            <div class="form-group"><label>Cód. Vano</label><input type="text" id="v_vano" value="V01" onchange="dibujar()"></div>
+                            <div class="form-group"><label>Ambiente</label><input type="text" id="v_ambiente" value="Dormitorio Principal" onchange="dibujar()"></div>
                         </div>
-                        <div id="divLatDer" class="sub-group">
-                            <label>Ancho Fijo Derecho (mm):</label>
-                            <input type="number" id="latDer" value="450" onchange="dibujar()">
+                        <div class="form-row">
+                            <div class="form-group"><label>Color PVC</label><input type="text" id="v_color" value="Blanco"></div>
+                            <div class="form-group"><label>Manija / Cierre</label><input type="text" id="v_manija"></div>
+                        </div>
+                        <div class="form-group"><label>Cristal / Vidrio</label><input type="text" id="v_vidrio" value="Laminado 6mm"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Piso Instalación</label><input type="text" id="v_piso" value="Piso 1"></div>
+                            <div class="form-group"><label>Ruta Acceso</label><input type="text" id="v_ruta" placeholder="Escaleras/Ascensor"></div>
+                        </div>
+                        <div class="form-group"><label>Seguridad</label><input type="text" id="v_seguridad" value="EPPS Completo"></div>
+                        <div class="form-group"><label>Observaciones de este vano</label><input type="text" id="v_observacion" placeholder="Detalles de instalación..."></div>
+                    </div>
+                </details>
+
+                <!-- 3. MEDIDAS Y ESTRUCTURA FIJA -->
+                <details open>
+                    <summary>3. Medidas y Módulos Fijos</summary>
+                    <div class="details-content">
+                        <div class="form-group">
+                            <label>Ancho Vano (Sup / Medio / Inf) mm</label>
+                            <div class="form-row-3">
+                                <input type="number" id="ancho1" value="1500" onchange="updateUI()" placeholder="Req">
+                                <input type="number" id="ancho2" onchange="updateUI()" placeholder="Opc">
+                                <input type="number" id="ancho3" onchange="updateUI()" placeholder="Opc">
+                            </div>
+                            <div class="hint">Usando medida menor: <span id="anchoFinal">1500</span> mm</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Alto Vano (Izq / Centro / Der) mm</label>
+                            <div class="form-row-3">
+                                <input type="number" id="alto1" value="1200" onchange="updateUI()" placeholder="Req">
+                                <input type="number" id="alto2" onchange="updateUI()" placeholder="Opc">
+                                <input type="number" id="alto3" onchange="updateUI()" placeholder="Opc">
+                            </div>
+                            <div class="hint">Usando medida menor: <span id="altoFinal">1200</span> mm</div>
+                        </div>
+
+                        <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;"></div>
+
+                        <div class="form-group">
+                            <label style="color:var(--primary);">Banderolas (Travesaños)</label>
+                            <select id="tipoBanderola" onchange="updateUI()">
+                                <option value="none" selected>Ninguna</option>
+                                <option value="sup">Banderola Superior</option>
+                                <option value="inf">Banderola Inferior</option>
+                                <option value="ambos">Superior e Inferior</option>
+                            </select>
+                        </div>
+                        <div class="form-row" id="wrapBanderolas" style="display:none;">
+                            <div class="form-group" id="wrapBandSup" style="display:none;"><label>Alto Sup (mm)</label><input type="number" id="altoBandSup" value="400" onchange="updateUI()"></div>
+                            <div class="form-group" id="wrapBandInf" style="display:none;"><label>Alto Inf (mm)</label><input type="number" id="altoBandInf" value="400" onchange="updateUI()"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="color:var(--primary);">Fijos Laterales (Postes)</label>
+                            <select id="tipoLaterales" onchange="updateUI()">
+                                <option value="none" selected>Ninguno</option>
+                                <option value="izq">Lateral Izquierdo</option>
+                                <option value="der">Lateral Derecho</option>
+                                <option value="ambos">Ambos Lados</option>
+                            </select>
+                        </div>
+                        <div class="form-row" id="wrapLaterales" style="display:none;">
+                            <div class="form-group" id="wrapLatIzq" style="display:none;"><label>Ancho Izq (mm)</label><input type="number" id="latIzq" value="450" onchange="updateUI()"></div>
+                            <div class="form-group" id="wrapLatDer" style="display:none;"><label>Ancho Der (mm)</label><input type="number" id="latDer" value="450" onchange="updateUI()"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="color:var(--primary);">Fijo Parcial (Dintel / Zócalo)</label>
+                            <select id="tipoParcial" onchange="updateUI()">
+                                <option value="none" selected>Ninguno</option>
+                                <option value="sup_izq">Superior Izquierdo</option>
+                                <option value="inf_izq">Inferior Izquierdo</option>
+                                <option value="sup_der">Superior Derecho</option>
+                                <option value="inf_der">Inferior Derecho</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="wrapParcial" style="display:none;">
+                            <label>Alto Parcial (mm)</label><input type="number" id="altoParcial" value="400" onchange="updateUI()">
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <div class="toggle-container">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="chkFijoParcial" onchange="toggleFijoParcial()">
-                        Fijo Parcial (Solo un lado)
-                    </label>
-                    <div id="divFijoParcial" class="sub-inputs">
-                        <label>Ubicación:</label>
-                        <select id="ladoFijoParcial" onchange="dibujar()">
-                            <option value="izq">En Paño Izquierdo</option>
-                            <option value="der">En Paño Derecho</option>
-                        </select>
-                        <select id="posFijoParcial" onchange="dibujar()" style="margin-top: 5px;">
-                            <option value="inf">Fijo Inferior (Abajo)</option>
-                            <option value="sup">Fijo Superior (Arriba)</option>
-                        </select>
-                        <div class="sub-group">
-                            <label>Alto Fijo Parcial (mm):</label>
-                            <input type="number" id="altoFijoParcial" value="400" onchange="dibujar()">
+                <!-- 4. HOJAS CENTRALES -->
+                <details open>
+                    <summary>4. Hojas y Sistemas de Apertura</summary>
+                    <div class="details-content">
+                        <div class="form-group">
+                            <label>Eje Central de División (mm)</label>
+                            <input type="number" id="poste" value="750" onchange="updateUI()">
+                            <div class="hint" style="color: var(--text-label);">Coloca "0" para marco vacío</div>
                         </div>
+
+                        <div class="form-group">
+                            <label style="color:var(--primary);">Fijo Central (Separador)</label>
+                            <select id="tipoFijoCentro" onchange="updateUI()">
+                                <option value="no" selected>No</option>
+                                <option value="si">Sí</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="wrapFijoCentro" style="display:none;">
+                            <label>Ancho Fijo Central (mm)</label><input type="number" id="anchoFijoCentro" value="600" onchange="updateUI()">
+                        </div>
+
+                        <div class="form-row" style="margin-top: 10px;">
+                            <div class="form-group">
+                                <label>Paño Izquierdo</label>
+                                <select id="tipoIzq" onchange="updateUI()">
+                                    <option value="fijo">Paño Fijo</option>
+                                    <option value="corrediza_izq">Corrediza (←)</option>
+                                    <option value="corrediza_der">Corrediza (→)</option>
+                                    <option value="bat_izq">Batiente (MD)</option>
+                                    <option value="bat_der">Batiente (MI)</option>
+                                    <option value="oscilobat_izq">Oscilobatiente (MD)</option>
+                                    <option value="oscilobat_der">Oscilobatiente (MI)</option>
+                                    <option value="proyectante">Proyectante</option>
+                                    <option value="oscilante">Oscilante</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Paño Derecho</label>
+                                <select id="tipoDer" onchange="updateUI()">
+                                    <option value="fijo">Paño Fijo</option>
+                                    <option value="corrediza_der">Corrediza (→)</option>
+                                    <option value="corrediza_izq" selected>Corrediza (←)</option>
+                                    <option value="bat_der">Batiente (MI)</option>
+                                    <option value="bat_izq">Batiente (MD)</option>
+                                    <option value="oscilobat_der">Oscilobatiente (MI)</option>
+                                    <option value="oscilobat_izq">Oscilobatiente (MD)</option>
+                                    <option value="proyectante">Proyectante</option>
+                                    <option value="oscilante">Oscilante</option>
+                                </select>
+                            </div>
+                        </div>
+
                     </div>
-                </div>
+                </details>
             </div>
-
-            <div class="seccion">
-                <h2>4. Hojas Centrales</h2>
-                <label>Posición Eje Central (0 = Solo Perímetro):</label>
-                <input type="number" id="poste" value="750" onchange="dibujar()">
-                
-                <div class="toggle-container" style="margin-top: 15px; border-color: #0ea5e9; background: #e0f2fe;">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="chkFijoCentro" onchange="toggleFijoCentro()">
-                        Fijo Central (Entre hojas)
-                    </label>
-                    <div id="divFijoCentro" class="sub-inputs" style="border-top-color: #7dd3fc;">
-                        <label>Ancho Fijo Central (mm):</label>
-                        <input type="number" id="anchoFijoCentro" value="600" onchange="dibujar()">
-                    </div>
-                </div>
-                
-                <label style="margin-top: 15px;">Paño Izquierdo:</label>
-                <select id="tipoIzq" onchange="dibujar()">
-                    <option value="fijo" selected>Paño Fijo</option>
-                    <option value="corrediza_izq">Corrediza (←)</option>
-                    <option value="corrediza_der">Corrediza (→)</option>
-                    <option value="bat_izq">Batiente (Manija Der)</option>
-                    <option value="bat_der">Batiente (Manija Izq)</option>
-                    <option value="oscilobat_izq">Oscilobatiente (Manija Der)</option>
-                    <option value="oscilobat_der">Oscilobatiente (Manija Izq)</option>
-                    <option value="proyectante">Proyectante (Manija Abajo)</option>
-                    <option value="oscilante">Oscilante (Manija Arriba)</option>
-                </select>
-
-                <label>Paño Derecho:</label>
-                <select id="tipoDer" onchange="dibujar()">
-                    <option value="fijo" selected>Paño Fijo</option>
-                    <option value="corrediza_der">Corrediza (→)</option>
-                    <option value="corrediza_izq">Corrediza (←)</option>
-                    <option value="bat_der">Batiente (Manija Izq)</option>
-                    <option value="bat_izq">Batiente (Manija Der)</option>
-                    <option value="oscilobat_der">Oscilobatiente (Manija Izq)</option>
-                    <option value="oscilobat_izq">Oscilobatiente (Manija Der)</option>
-                    <option value="proyectante">Proyectante (Manija Abajo)</option>
-                    <option value="oscilante">Oscilante (Manija Arriba)</option>
-                </select>
-            </div>
-
-            <div style="margin-top: auto;">
-                <button class="btn-primary" onclick="guardarYDescargar()">💾 Guardar Reporte + Bajar PNG</button>
+            
+            <!-- PIE DE PANEL (BOTÓN SIEMPRE VISIBLE) -->
+            <div class="panel-footer">
+                <button class="btn btn-success" onclick="guardarYDescargar()">
+                    💾 Añadir a PDF y Descargar Ventana
+                </button>
             </div>
         </div>
-        
-        <!-- LIENZO Y REPORTE -->
-        <div class="canvas-container">
-            <canvas id="lienzo" width="1000" height="750"></canvas>
-            
-            <div style="width: 100%; border-top: 2px dashed #ccc; margin-top: 30px; padding-top: 20px;">
-                <div class="pdf-controls" style="display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div style="text-align: left; flex-grow: 1; padding-right: 10px;">
-                        <h2 style="margin-bottom: 5px;">📦 Reporte de Obra (PDF Local)</h2>
-                        <label style="margin-top: 10px; font-size: 13px;">Nombre de archivo PDF:</label>
-                        <input type="text" id="nombrePDF" value="Reporte_Medidas_Obra" placeholder="Ej. Proyecto_Los_Olivos">
+
+        <!-- ESPACIO DE TRABAJO DERECHO -->
+        <div class="workspace">
+            <div class="canvas-card">
+                <canvas id="lienzo" width="1200" height="850"></canvas>
+            </div>
+
+            <div class="report-card">
+                <div class="report-header">
+                    <div>
+                        <h2 style="color:#1e293b; border:none; margin:0; font-size:18px;">📋 Reporte PDF</h2>
+                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #64748b;">Los planos que guardes aparecerán aquí abajo listos para impresión técnica.</p>
                     </div>
-                    <button class="btn-pdf" onclick="imprimirPDF()" id="btnImprimir">📄 Imprimir PDF</button>
+                    <div style="display:flex; gap:10px; align-items:flex-end;">
+                        <div class="form-group" style="width: 200px;">
+                            <label style="color:#64748b;">Nombre del Archivo</label>
+                            <input type="text" id="nombrePDF" value="Proyecto_" style="background:white; color:#1e293b; border:1px solid #cbd5e1;">
+                        </div>
+                        <button class="btn btn-pdf" onclick="imprimirPDF()" id="btnImprimir">📄 Descargar PDF</button>
+                    </div>
                 </div>
-                <div class="galeria-miniaturas" id="galeria"></div>
+                <div class="galeria-miniaturas" id="galeria">
+                    <!-- Elementos vacíos al iniciar -->
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- CONTENEDOR OCULTO PARA IMPRESIÓN OFICIAL NEFUSAC -->
     <div id="printArea"></div>
 
     <script>
         const canvas = document.getElementById('lienzo');
         const ctx = canvas.getContext('2d');
-        
-        const anchoMarco = 60; 
-        const anchoHoja = 45;  
-        const anchoPoste = 60; 
+        const anchoMarco = 55, anchoHoja = 45, anchoPoste = 55; 
         let listaPlanos = [];
 
-        function toggleBanderola() {
-            let active = document.getElementById('chkBanderola').checked;
-            document.getElementById('divBanderola').style.display = active ? 'block' : 'none';
-            let tipo = document.getElementById('tipoBanderola').value;
-            document.getElementById('divBandSup').style.display = (tipo === 'sup' || tipo === 'ambos') ? 'block' : 'none';
-            document.getElementById('divBandInf').style.display = (tipo === 'inf' || tipo === 'ambos') ? 'block' : 'none';
-            dibujar();
-        }
-
-        function toggleLaterales() {
-            let active = document.getElementById('chkLaterales').checked;
-            document.getElementById('divLaterales').style.display = active ? 'block' : 'none';
-            let tipo = document.getElementById('tipoLaterales').value;
-            document.getElementById('divLatIzq').style.display = (tipo === 'izq' || tipo === 'ambos') ? 'block' : 'none';
-            document.getElementById('divLatDer').style.display = (tipo === 'der' || tipo === 'ambos') ? 'block' : 'none';
-            dibujar();
-        }
-
-        function toggleFijoParcial() {
-            document.getElementById('divFijoParcial').style.display = document.getElementById('chkFijoParcial').checked ? 'block' : 'none';
-            dibujar();
-        }
-
-        function toggleFijoCentro() {
-            document.getElementById('divFijoCentro').style.display = document.getElementById('chkFijoCentro').checked ? 'block' : 'none';
-            dibujar();
-        }
+        // Inicializar Fecha actual
+        document.getElementById('g_fecha').valueAsDate = new Date();
 
         function getMinimo(id1, id2, id3) {
-            let v1 = document.getElementById(id1).value;
-            let v2 = document.getElementById(id2).value;
-            let v3 = document.getElementById(id3).value;
+            let v1 = document.getElementById(id1).value; let v2 = document.getElementById(id2).value; let v3 = document.getElementById(id3).value;
             let arr = [];
             if (v1.trim() !== "" && !isNaN(v1) && parseFloat(v1) > 0) arr.push(parseFloat(v1));
             if (v2.trim() !== "" && !isNaN(v2) && parseFloat(v2) > 0) arr.push(parseFloat(v2));
@@ -284,31 +478,81 @@
             return arr.length > 0 ? Math.min(...arr) : 0;
         }
 
+        // CONTROL DE INTERFAZ DIRECTA (Reemplaza los toggles complejos)
+        function updateUI() {
+            // Banderolas
+            let tBand = document.getElementById('tipoBanderola').value;
+            document.getElementById('wrapBanderolas').style.display = (tBand !== 'none') ? 'flex' : 'none';
+            document.getElementById('wrapBandSup').style.display = (tBand === 'sup' || tBand === 'ambos') ? 'block' : 'none';
+            document.getElementById('wrapBandInf').style.display = (tBand === 'inf' || tBand === 'ambos') ? 'block' : 'none';
+
+            // Laterales
+            let tLat = document.getElementById('tipoLaterales').value;
+            document.getElementById('wrapLaterales').style.display = (tLat !== 'none') ? 'flex' : 'none';
+            document.getElementById('wrapLatIzq').style.display = (tLat === 'izq' || tLat === 'ambos') ? 'block' : 'none';
+            document.getElementById('wrapLatDer').style.display = (tLat === 'der' || tLat === 'ambos') ? 'block' : 'none';
+
+            // Parcial
+            let tParcial = document.getElementById('tipoParcial').value;
+            document.getElementById('wrapParcial').style.display = (tParcial !== 'none') ? 'block' : 'none';
+
+            // Fijo Central
+            let tFijoC = document.getElementById('tipoFijoCentro').value;
+            document.getElementById('wrapFijoCentro').style.display = (tFijoC === 'si') ? 'block' : 'none';
+
+            dibujar();
+        }
+
+        // MOTOR 3D PVC
+        function drawPVCProfile(x, y, w, h, isVertical) {
+            ctx.save();
+            ctx.fillStyle = '#f8fafc'; ctx.fillRect(x, y, w, h);
+            let grad;
+            if (isVertical) {
+                grad = ctx.createLinearGradient(x, y, x + w, y);
+                grad.addColorStop(0, "rgba(0,0,0,0.1)"); grad.addColorStop(0.15, "rgba(255,255,255,0.8)");
+                grad.addColorStop(0.85, "rgba(255,255,255,0.8)"); grad.addColorStop(1, "rgba(0,0,0,0.15)");
+            } else {
+                grad = ctx.createLinearGradient(x, y, x, y + h);
+                grad.addColorStop(0, "rgba(255,255,255,0.9)"); grad.addColorStop(0.2, "rgba(255,255,255,0.4)");
+                grad.addColorStop(0.8, "rgba(0,0,0,0.02)"); grad.addColorStop(1, "rgba(0,0,0,0.18)");
+            }
+            ctx.fillStyle = grad; ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h);
+            ctx.restore();
+        }
+
+        function drawGlass(x, y, w, h) {
+            ctx.save();
+            ctx.fillStyle = '#e0f2fe'; ctx.fillRect(x, y, w, h);
+            ctx.shadowColor = 'rgba(0,0,0,0.15)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+            ctx.strokeStyle = 'transparent'; ctx.strokeRect(x, y, w, h); ctx.shadowColor = 'transparent';
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w * 0.5, y); ctx.lineTo(x, y + h * 0.7); ctx.closePath();
+            let glassGrad = ctx.createLinearGradient(x, y, x + w*0.5, y + h*0.7);
+            glassGrad.addColorStop(0, "rgba(255,255,255,0.6)"); glassGrad.addColorStop(1, "rgba(255,255,255,0)");
+            ctx.fillStyle = glassGrad; ctx.fill();
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, h);
+            ctx.restore();
+        }
+
         function dibujarCota(x1, y1, x2, y2, texto, isVertical) {
             if(Math.abs(x2-x1) < 20 && !isVertical) return; 
             if(Math.abs(y2-y1) < 20 && isVertical) return;
-
             ctx.save();
-            ctx.strokeStyle = '#333'; ctx.fillStyle = '#333'; ctx.lineWidth = 1.5;
-            ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.strokeStyle = '#475569'; ctx.fillStyle = '#1e293b'; ctx.lineWidth = 1.5;
+            ctx.font = '600 16px "Inter", Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
             const tick = 8;
             ctx.beginPath(); ctx.moveTo(x1 - tick, y1 + tick); ctx.lineTo(x1 + tick, y1 - tick); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(x2 - tick, y2 + tick); ctx.lineTo(x2 + tick, y2 - tick); ctx.stroke();
-            
-            let txtW = ctx.measureText(texto).width + 12;
+            let txtW = ctx.measureText(texto).width + 16;
             if (!isVertical) { 
-                ctx.fillStyle = "rgba(255,255,255,0.85)";
-                ctx.fillRect(x1 + (x2-x1)/2 - txtW/2, y1 - 24, txtW, 20);
-                ctx.fillStyle = "#333";
-                ctx.fillText(texto, x1 + (x2 - x1) / 2, y1 - 14);
+                ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(x1 + (x2-x1)/2 - txtW/2, y1 - 24, txtW, 20);
+                ctx.fillStyle = "#0f172a"; ctx.fillText(texto, x1 + (x2 - x1) / 2, y1 - 14);
             } else { 
-                ctx.translate(x1 - 22, y1 + (y2 - y1) / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.fillStyle = "rgba(255,255,255,0.85)";
-                ctx.fillRect(-txtW/2, -10, txtW, 20);
-                ctx.fillStyle = "#333";
-                ctx.fillText(texto, 0, 0);
+                ctx.translate(x1 - 24, y1 + (y2 - y1) / 2); ctx.rotate(-Math.PI / 2);
+                ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(-txtW/2, -10, txtW, 20);
+                ctx.fillStyle = "#0f172a"; ctx.fillText(texto, 0, 0);
             }
             ctx.restore();
         }
@@ -316,34 +560,22 @@
         function dibujarSimbolo(x, y, w, h, tipo) {
             ctx.save();
             if (tipo === 'bat_izq' || tipo === 'bat_der' || tipo === 'proyectante' || tipo === 'oscilante' || tipo.startsWith('oscilobat')) {
-                ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.5; ctx.setLineDash([8, 6]);
-                
-                // Aperturas laterales
-                if (tipo === 'bat_izq' || tipo === 'oscilobat_izq') { 
-                    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + h/2); ctx.lineTo(x, y + h); ctx.stroke(); 
-                } 
-                if (tipo === 'bat_der' || tipo === 'oscilobat_der') { 
-                    ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x, y + h/2); ctx.lineTo(x + w, y + h); ctx.stroke(); 
-                } 
-                
-                // Aperturas verticales
-                if (tipo === 'proyectante') { // Manija Abajo (Vértice a la manija)
-                    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w/2, y + h); ctx.lineTo(x + w, y); ctx.stroke(); 
-                }
-                if (tipo === 'oscilante' || tipo.startsWith('oscilobat')) {  // Manija Arriba
-                    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + w/2, y); ctx.lineTo(x + w, y + h); ctx.stroke(); 
-                }
+                ctx.strokeStyle = 'rgba(2, 132, 199, 0.7)'; ctx.lineWidth = 2.5; ctx.setLineDash([10, 8]);
+                if (tipo === 'bat_izq' || tipo === 'oscilobat_izq') { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + h/2); ctx.lineTo(x, y + h); ctx.stroke(); } 
+                if (tipo === 'bat_der' || tipo === 'oscilobat_der') { ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x, y + h/2); ctx.lineTo(x + w, y + h); ctx.stroke(); } 
+                if (tipo === 'proyectante' || tipo.startsWith('oscilobat')) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w/2, y + h); ctx.lineTo(x + w, y); ctx.stroke(); }
+                if (tipo === 'oscilante') { ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + w/2, y); ctx.lineTo(x + w, y + h); ctx.stroke(); }
             } 
             else if (tipo.startsWith('corrediza')) {
-                ctx.strokeStyle = '#e11d48'; ctx.fillStyle = '#e11d48'; ctx.lineWidth = 4; ctx.setLineDash([]); 
-                let yMid = y + h/2; let xCenter = x + w/2; let arrowLen = w * 0.3; 
+                ctx.strokeStyle = 'rgba(225, 29, 72, 0.8)'; ctx.fillStyle = 'rgba(225, 29, 72, 0.8)'; ctx.lineWidth = 4; ctx.setLineDash([]); 
+                let yMid = y + h/2; let xCenter = x + w/2; let arrowLen = w * 0.25; 
                 ctx.beginPath();
                 if (tipo === 'corrediza_izq') {
                     ctx.moveTo(xCenter + arrowLen/2, yMid); ctx.lineTo(xCenter - arrowLen/2, yMid); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(xCenter - arrowLen/2, yMid); ctx.lineTo(xCenter - arrowLen/2 + 20, yMid - 12); ctx.lineTo(xCenter - arrowLen/2 + 20, yMid + 12); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(xCenter - arrowLen/2, yMid); ctx.lineTo(xCenter - arrowLen/2 + 20, yMid - 10); ctx.lineTo(xCenter - arrowLen/2 + 20, yMid + 10); ctx.fill();
                 } else {
                     ctx.moveTo(xCenter - arrowLen/2, yMid); ctx.lineTo(xCenter + arrowLen/2, yMid); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(xCenter + arrowLen/2, yMid); ctx.lineTo(xCenter + arrowLen/2 - 20, yMid - 12); ctx.lineTo(xCenter + arrowLen/2 - 20, yMid + 12); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(xCenter + arrowLen/2, yMid); ctx.lineTo(xCenter + arrowLen/2 - 20, yMid - 10); ctx.lineTo(xCenter + arrowLen/2 - 20, yMid + 10); ctx.fill();
                 }
             }
             ctx.restore();
@@ -352,11 +584,12 @@
         function dibujarSeccion(x, y, w, h, tipo, scale) {
             const hojaScaled = anchoHoja * scale;
             if (tipo !== 'fijo' && tipo !== 'fijo_puro') {
-                ctx.fillStyle = "#f8fafc"; ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
-                ctx.fillStyle = "#e0f2fe"; ctx.fillRect(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2); ctx.strokeRect(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2);
+                drawPVCProfile(x, y, w, h, false); 
+                drawPVCProfile(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2, true); 
+                drawGlass(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2);
                 dibujarSimbolo(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2, tipo);
             } else {
-                ctx.fillStyle = "#e0f2fe"; ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+                drawGlass(x, y, w, h);
             }
         }
 
@@ -364,7 +597,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            let titulo = document.getElementById('titulo').value || "Sin_Titulo";
+            let v_vano = document.getElementById('v_vano').value || "V-XX";
             
             let anchoReal = getMinimo('ancho1', 'ancho2', 'ancho3');
             document.getElementById('anchoFinal').innerText = anchoReal;
@@ -377,34 +610,34 @@
             let tipoDer = document.getElementById('tipoDer').value;
             let esCorrediza = tipoIzq.startsWith('corrediza') || tipoDer.startsWith('corrediza');
 
-            let hasBanderola = document.getElementById('chkBanderola').checked;
             let tipoBanderola = document.getElementById('tipoBanderola').value;
-            let hasBandSup = hasBanderola && (tipoBanderola === 'sup' || tipoBanderola === 'ambos');
-            let hasBandInf = hasBanderola && (tipoBanderola === 'inf' || tipoBanderola === 'ambos');
+            let hasBandSup = (tipoBanderola === 'sup' || tipoBanderola === 'ambos');
+            let hasBandInf = (tipoBanderola === 'inf' || tipoBanderola === 'ambos');
             let bandSupReal = parseFloat(document.getElementById('altoBandSup').value) || 0;
             let bandInfReal = parseFloat(document.getElementById('altoBandInf').value) || 0;
 
-            let hasLaterales = document.getElementById('chkLaterales').checked;
             let tipoLaterales = document.getElementById('tipoLaterales').value;
-            let hasLatIzq = hasLaterales && (tipoLaterales === 'izq' || tipoLaterales === 'ambos');
-            let hasLatDer = hasLaterales && (tipoLaterales === 'der' || tipoLaterales === 'ambos');
+            let hasLatIzq = (tipoLaterales === 'izq' || tipoLaterales === 'ambos');
+            let hasLatDer = (tipoLaterales === 'der' || tipoLaterales === 'ambos');
             let latIzqReal = parseFloat(document.getElementById('latIzq').value) || 0;
             let latDerReal = parseFloat(document.getElementById('latDer').value) || 0;
 
-            let hasParcial = document.getElementById('chkFijoParcial').checked;
-            let ladoParcial = document.getElementById('ladoFijoParcial').value;
-            let posParcial = document.getElementById('posFijoParcial').value;
-            let parcialAltoReal = parseFloat(document.getElementById('altoFijoParcial').value) || 0;
+            let tipoParcial = document.getElementById('tipoParcial').value;
+            let hasParcial = (tipoParcial !== 'none');
+            let ladoParcial = (tipoParcial === 'inf_izq' || tipoParcial === 'sup_izq') ? 'izq' : 'der';
+            let posParcial = (tipoParcial === 'inf_izq' || tipoParcial === 'inf_der') ? 'inf' : 'sup';
+            let parcialAltoReal = parseFloat(document.getElementById('altoParcial').value) || 0;
 
-            let hasFijoCentro = document.getElementById('chkFijoCentro').checked;
+            let hasFijoCentro = (document.getElementById('tipoFijoCentro').value === 'si');
             let anchoFijoCentroReal = parseFloat(document.getElementById('anchoFijoCentro').value) || 0;
 
-            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-            ctx.fillText("Ref: " + titulo, 40, 30);
+            // TITULO DEL CANVAS
+            ctx.fillStyle = '#0f172a'; ctx.font = '800 24px "Inter", Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+            ctx.fillText("Ref: " + document.getElementById('v_ambiente').value + " (" + v_vano + ")", 40, 40);
 
             if(anchoReal <= 0 || altoReal <= 0) return;
 
-            const mgTop = 110, mgBottom = 90, mgLeft = 110, mgRight = 80;
+            const mgTop = 150, mgBottom = 150, mgLeft = 180, mgRight = 140;
             const drawW = canvas.width - mgLeft - mgRight;
             const drawH = canvas.height - mgTop - mgBottom;
             const scaleX = drawW / anchoReal;
@@ -420,67 +653,57 @@
             const posteS = anchoPoste * scale;
             const hojaS = anchoHoja * scale;
 
-            // MARCO EXTERIOR
-            ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-            ctx.fillRect(x0, y0, w, h); ctx.strokeRect(x0, y0, w, h);
-            ctx.lineWidth = 1.5;
+            // 1. MARCO EXTERIOR 3D
+            drawPVCProfile(x0, y0, w, h, false);
+            ctx.fillStyle = '#fff'; ctx.fillRect(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
 
-            if (posteReal === 0 && !hasBanderola && !hasLaterales) {
-                ctx.fillStyle = "#e0f2fe"; ctx.fillRect(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
-                ctx.strokeRect(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
-                dibujarCota(x0, y0 - 45, x0 + w, y0 - 45, anchoReal + ' mm', false); 
-                dibujarCota(x0 - 55, y0, x0 - 55, y0 + h, altoReal + ' mm', true);
+            if (posteReal === 0 && !hasBandSup && !hasBandInf && !hasLatIzq && !hasLatDer) {
+                drawGlass(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
+                dibujarCota(x0, y0 - 55, x0 + w, y0 - 55, anchoReal + ' mm', false); 
+                dibujarCota(x0 - 65, y0, x0 - 65, y0 + h, altoReal + ' mm', true);
                 return; 
             }
 
             let ix = x0 + marcoS; let iy = y0 + marcoS;
             let iendX = x0 + w - marcoS; let iendY = y0 + h - marcoS;
 
-            // LATERALES
+            // 2. LATERALES
             if (hasLatIzq && latIzqReal > 0) {
                 let cPoste = x0 + latIzqReal * scale;
                 let fW = cPoste - posteS/2 - ix;
                 dibujarSeccion(ix, iy, fW, iendY - iy, 'fijo_puro', scale);
-                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                ctx.fillRect(cPoste - posteS/2, iy, posteS, iendY - iy); ctx.strokeRect(cPoste - posteS/2, iy, posteS, iendY - iy);
-                ctx.lineWidth = 1.5;
+                drawPVCProfile(cPoste - posteS/2, iy, posteS, iendY - iy, true);
                 ix = cPoste + posteS/2;
             }
             if (hasLatDer && latDerReal > 0) {
                 let cPoste = x0 + w - latDerReal * scale;
                 let fW = iendX - (cPoste + posteS/2);
                 dibujarSeccion(cPoste + posteS/2, iy, fW, iendY - iy, 'fijo_puro', scale);
-                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                ctx.fillRect(cPoste - posteS/2, iy, posteS, iendY - iy); ctx.strokeRect(cPoste - posteS/2, iy, posteS, iendY - iy);
-                ctx.lineWidth = 1.5;
+                drawPVCProfile(cPoste - posteS/2, iy, posteS, iendY - iy, true);
                 iendX = cPoste - posteS/2;
             }
 
             let iw = iendX - ix;
 
-            // BANDEROLAS
+            // 3. BANDEROLAS
             if (hasBandSup && bandSupReal > 0) {
                 let cTrav = y0 + bandSupReal * scale;
                 let fH = cTrav - posteS/2 - iy;
                 dibujarSeccion(ix, iy, iw, fH, 'fijo_puro', scale);
-                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                ctx.fillRect(ix, cTrav - posteS/2, iw, posteS); ctx.strokeRect(ix, cTrav - posteS/2, iw, posteS);
-                ctx.lineWidth = 1.5;
+                drawPVCProfile(ix, cTrav - posteS/2, iw, posteS, false);
                 iy = cTrav + posteS/2;
             }
             if (hasBandInf && bandInfReal > 0) {
                 let cTrav = y0 + h - bandInfReal * scale;
                 let fH = iendY - (cTrav + posteS/2);
                 dibujarSeccion(ix, cTrav + posteS/2, iw, fH, 'fijo_puro', scale);
-                ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                ctx.fillRect(ix, cTrav - posteS/2, iw, posteS); ctx.strokeRect(ix, cTrav - posteS/2, iw, posteS);
-                ctx.lineWidth = 1.5;
+                drawPVCProfile(ix, cTrav - posteS/2, iw, posteS, false);
                 iendY = cTrav - posteS/2;
             }
 
             let ih = iendY - iy;
 
-            // AREA CENTRAL
+            // 4. AREA CENTRAL
             function dibujarColumnaParcial(xC, yC, wC, hC, tipo, isIzq) {
                 if (hasParcial && ladoParcial === (isIzq ? 'izq' : 'der') && parcialAltoReal > 0 && !hasFijoCentro) {
                     let cTravParcial;
@@ -489,12 +712,9 @@
                         if (cTravParcial > yC && cTravParcial < yC + hC) {
                             let fH = cTravParcial - posteS/2 - yC;
                             dibujarSeccion(xC, yC, wC, fH, 'fijo_puro', scale);
-                            ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                            ctx.fillRect(xC, cTravParcial - posteS/2, wC, posteS); ctx.strokeRect(xC, cTravParcial - posteS/2, wC, posteS);
-                            ctx.lineWidth = 1.5;
+                            drawPVCProfile(xC, cTravParcial - posteS/2, wC, posteS, false);
                             dibujarSeccion(xC, cTravParcial + posteS/2, wC, (yC + hC) - (cTravParcial + posteS/2), tipo, scale);
-                            
-                            let cX = isIzq ? (x0 - 105) : (x0 + w + 75);
+                            let cX = isIzq ? (x0 - 130) : (x0 + w + 80);
                             dibujarCota(cX, y0, cX, y0 + (parcialAltoReal*scale), parcialAltoReal + ' mm', true);
                             return;
                         }
@@ -503,12 +723,9 @@
                         if (cTravParcial > yC && cTravParcial < yC + hC) {
                             let fH = (yC + hC) - (cTravParcial + posteS/2);
                             dibujarSeccion(xC, yC, wC, cTravParcial - posteS/2 - yC, tipo, scale);
-                            ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                            ctx.fillRect(xC, cTravParcial - posteS/2, wC, posteS); ctx.strokeRect(xC, cTravParcial - posteS/2, wC, posteS);
-                            ctx.lineWidth = 1.5;
+                            drawPVCProfile(xC, cTravParcial - posteS/2, wC, posteS, false);
                             dibujarSeccion(xC, cTravParcial + posteS/2, wC, fH, 'fijo_puro', scale);
-                            
-                            let cX = isIzq ? (x0 - 105) : (x0 + w + 75);
+                            let cX = isIzq ? (x0 - 130) : (x0 + w + 80);
                             dibujarCota(cX, y0 + h - (parcialAltoReal*scale), cX, y0 + h, parcialAltoReal + ' mm', true);
                             return;
                         }
@@ -522,106 +739,104 @@
                 cEje = Math.max(ix + posteS, Math.min(iendX - posteS, cEje));
 
                 if (hasFijoCentro && anchoFijoCentroReal > 0) {
-                    // SISTEMA DE 3 HOJAS (Fijo Central)
                     let wFC = anchoFijoCentroReal * scale;
                     let xPoste1 = cEje - wFC/2;
                     let xPoste2 = cEje + wFC/2;
-                    
                     xPoste1 = Math.max(ix + posteS, xPoste1);
                     xPoste2 = Math.min(iendX - posteS, Math.max(xPoste1 + posteS, xPoste2));
 
                     if (esCorrediza) {
-                        let wIzq = (xPoste1 - ix) + (hojaS / 2);
-                        let xCentro = xPoste1 - (hojaS / 2);
-                        let wCentro = (xPoste2 - xPoste1) + hojaS;
-                        let xDer = xPoste2 - (hojaS / 2);
-                        let wDer = iendX - xDer;
-                        
-                        dibujarSeccion(xCentro, iy, wCentro, ih, 'fijo', scale); // Centro
-                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true); // Izq
-                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false); // Der
+                        let wIzq = (xPoste1 - ix) + (hojaS / 2); let xCentro = xPoste1 - (hojaS / 2);
+                        let wCentro = (xPoste2 - xPoste1) + hojaS; let xDer = xPoste2 - (hojaS / 2); let wDer = iendX - xDer;
+                        dibujarSeccion(xCentro, iy, wCentro, ih, 'fijo', scale); 
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true); 
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false); 
                     } else {
-                        let wIzq = (xPoste1 - posteS/2) - ix;
-                        let xDer = xPoste2 + posteS/2;
-                        let wDer = iendX - xDer;
-                        
+                        let wIzq = (xPoste1 - posteS/2) - ix; let xDer = xPoste2 + posteS/2; let wDer = iendX - xDer;
                         dibujarSeccion(xPoste1 + posteS/2, iy, xPoste2 - xPoste1 - posteS, ih, 'fijo_puro', scale);
                         dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
                         dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
-                        
-                        ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                        ctx.fillRect(xPoste1 - posteS/2, iy, posteS, ih); ctx.strokeRect(xPoste1 - posteS/2, iy, posteS, ih);
-                        ctx.fillRect(xPoste2 - posteS/2, iy, posteS, ih); ctx.strokeRect(xPoste2 - posteS/2, iy, posteS, ih);
-                        ctx.lineWidth = 1.5;
+                        drawPVCProfile(xPoste1 - posteS/2, iy, posteS, ih, true);
+                        drawPVCProfile(xPoste2 - posteS/2, iy, posteS, ih, true);
                     }
-                    
-                    // Cotas para 3 hojas
-                    dibujarCota(x0, y0 + h + 45, xPoste1, y0 + h + 45, Math.round((xPoste1-x0)/scale) + ' mm', false); 
-                    dibujarCota(xPoste1, y0 + h + 45, xPoste2, y0 + h + 45, Math.round((xPoste2-xPoste1)/scale) + ' mm', false); 
-                    dibujarCota(xPoste2, y0 + h + 45, x0 + w, y0 + h + 45, Math.round((x0+w-xPoste2)/scale) + ' mm', false); 
-
+                    dibujarCota(x0, y0 + h + 55, xPoste1, y0 + h + 55, Math.round((xPoste1-x0)/scale) + ' mm', false); 
+                    dibujarCota(xPoste1, y0 + h + 55, xPoste2, y0 + h + 55, Math.round((xPoste2-xPoste1)/scale) + ' mm', false); 
+                    dibujarCota(xPoste2, y0 + h + 55, x0 + w, y0 + h + 55, Math.round((x0+w-xPoste2)/scale) + ' mm', false); 
                 } else {
-                    // SISTEMA DE 2 HOJAS NORMAL
                     if (esCorrediza) {
-                        let wIzq = (cEje - ix) + (hojaS / 2);
-                        let xDer = cEje - (hojaS / 2);
-                        let wDer = iendX - xDer;
+                        let wIzq = (cEje - ix) + (hojaS / 2); let xDer = cEje - (hojaS / 2); let wDer = iendX - xDer;
                         dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
                         dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
                     } else {
-                        let wIzq = (cEje - posteS/2) - ix;
-                        let xDer = cEje + posteS/2;
-                        let wDer = iendX - xDer;
+                        let wIzq = (cEje - posteS/2) - ix; let xDer = cEje + posteS/2; let wDer = iendX - xDer;
                         dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
                         dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
-                        
-                        ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
-                        ctx.fillRect(cEje - posteS/2, iy, posteS, ih); ctx.strokeRect(cEje - posteS/2, iy, posteS, ih);
-                        ctx.lineWidth = 1.5;
+                        drawPVCProfile(cEje - posteS/2, iy, posteS, ih, true);
                     }
-                    // Cotas para 2 hojas
-                    dibujarCota(x0, y0 + h + 45, cEje, y0 + h + 45, Math.round((cEje-x0)/scale) + ' mm', false); 
-                    dibujarCota(cEje, y0 + h + 45, x0 + w, y0 + h + 45, Math.round((x0+w-cEje)/scale) + ' mm', false); 
+                    dibujarCota(x0, y0 + h + 55, cEje, y0 + h + 55, Math.round((cEje-x0)/scale) + ' mm', false); 
+                    dibujarCota(cEje, y0 + h + 55, x0 + w, y0 + h + 55, Math.round((x0+w-cEje)/scale) + ' mm', false); 
                 }
             } else if (posteReal === 0 && iw > 0 && ih > 0) {
                 dibujarColumnaParcial(ix, iy, iw, ih, tipoIzq, true);
             }
 
-            // COTAS GENERALES EXTERNAS
-            dibujarCota(x0, y0 - 45, x0 + w, y0 - 45, anchoReal + ' mm', false); 
-            dibujarCota(x0 - 55, y0, x0 - 55, y0 + h, altoReal + ' mm', true); 
+            // COTAS GENERALES EXTERNAS (Nivel 1)
+            dibujarCota(x0, y0 - 55, x0 + w, y0 - 55, anchoReal + ' mm', false); 
+            dibujarCota(x0 - 65, y0, x0 - 65, y0 + h, altoReal + ' mm', true); 
 
-            if(hasLatIzq && latIzqReal > 0) {
-                dibujarCota(x0, y0 + h + 80, x0 + (latIzqReal*scale), y0 + h + 80, latIzqReal + ' mm', false); 
-            }
-            if(hasLatDer && latDerReal > 0) {
-                dibujarCota(x0 + w - (latDerReal*scale), y0 + h + 80, x0 + w, y0 + h + 80, latDerReal + ' mm', false); 
-            }
-            
-            if(hasBandSup && bandSupReal > 0) {
-                dibujarCota(x0 - 85, y0, x0 - 85, y0 + (bandSupReal*scale), bandSupReal + ' mm', true);
-            }
-            if(hasBandInf && bandInfReal > 0) {
-                dibujarCota(x0 - 85, y0 + h - (bandInfReal*scale), x0 - 85, y0 + h, bandInfReal + ' mm', true);
-            }
+            // COTAS SECUNDARIAS (Nivel 2)
+            if(hasLatIzq && latIzqReal > 0) dibujarCota(x0, y0 + h + 95, x0 + (latIzqReal*scale), y0 + h + 95, latIzqReal + ' mm', false); 
+            if(hasLatDer && latDerReal > 0) dibujarCota(x0 + w - (latDerReal*scale), y0 + h + 95, x0 + w, y0 + h + 95, latDerReal + ' mm', false); 
+            if(hasBandSup && bandSupReal > 0) dibujarCota(x0 - 105, y0, x0 - 105, y0 + (bandSupReal*scale), bandSupReal + ' mm', true);
+            if(hasBandInf && bandInfReal > 0) dibujarCota(x0 - 105, y0 + h - (bandInfReal*scale), x0 - 105, y0 + h, bandInfReal + ' mm', true);
         }
 
         function exportarIndividual() {
-            let tituloRaw = document.getElementById('titulo').value.trim() || "Plano_Ventana";
+            let tituloRaw = document.getElementById('v_vano').value.trim() || "Plano_Ventana";
             let nombreArchivo = tituloRaw.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png';
             const link = document.createElement('a');
             link.download = nombreArchivo; link.href = canvas.toDataURL('image/png'); link.click();
         }
-        function guardarEnLista() {
-            let titulo = document.getElementById('titulo').value.trim() || "Sin Título";
-            listaPlanos.push({ titulo: titulo, img: canvas.toDataURL('image/png') });
-            renderizarGaleria();
+
+        function guardarPlano() {
+            try {
+                let plano = {
+                    id: Date.now(),
+                    img: canvas.toDataURL('image/png'),
+                    vano: document.getElementById('v_vano').value || "V-00",
+                    ambiente: document.getElementById('v_ambiente').value || "-",
+                    color: document.getElementById('v_color').value || "-",
+                    manija: document.getElementById('v_manija').value || "-",
+                    vidrio: document.getElementById('v_vidrio').value || "-",
+                    piso: document.getElementById('v_piso').value || "-",
+                    ruta: document.getElementById('v_ruta').value || "-",
+                    seguridad: document.getElementById('v_seguridad').value || "-",
+                    observacion: document.getElementById('v_observacion').value || "-"
+                };
+                listaPlanos.push(plano);
+                renderizarGaleria();
+                
+                let v_input = document.getElementById('v_vano');
+                let textPart = v_input.value.replace(/[0-9]/g, '');
+                let numPart = v_input.value.replace(/[^0-9]/g, '');
+                if(numPart) {
+                    let nextNum = parseInt(numPart) + 1;
+                    v_input.value = textPart + nextNum.toString().padStart(numPart.length, '0');
+                }
+            } catch (e) {
+                console.error("Error al guardar:", e);
+                alert("Ocurrió un error al procesar la imagen.");
+            }
         }
+
         function guardarYDescargar() {
-            exportarIndividual(); guardarEnLista();
+            exportarIndividual();
+            guardarPlano();
         }
-        function eliminarDeLista(index) {
-            listaPlanos.splice(index, 1); renderizarGaleria();
+
+        function eliminarPlano(index) {
+            listaPlanos.splice(index, 1); 
+            renderizarGaleria();
         }
 
         function renderizarGaleria() {
@@ -630,48 +845,169 @@
             galeria.innerHTML = ''; printArea.innerHTML = ''; 
 
             if (listaPlanos.length === 0) {
-                galeria.innerHTML = '<span style="color:#999; font-size:13px;">No hay planos guardados aún.</span>';
+                galeria.innerHTML = '<span style="color:var(--text-label); font-size:13px; font-weight:normal;">No hay planos capturados.</span>';
                 document.getElementById('btnImprimir').style.display = 'none';
                 return;
             }
 
-            document.getElementById('btnImprimir').style.display = 'block';
+            document.getElementById('btnImprimir').style.display = 'inline-flex';
 
+            let g_cliente = document.getElementById('g_cliente').value || "";
+            let g_ruc = document.getElementById('g_ruc').value || "";
+            let g_contacto = document.getElementById('g_contacto').value || "";
+            let g_telefono = document.getElementById('g_telefono').value || "";
+            let g_direccion = document.getElementById('g_direccion').value || "";
+            
+            // FORMATEAR FECHA A DD/MM/YYYY
+            let g_fecha_raw = document.getElementById('g_fecha').value || "";
+            let g_fecha = g_fecha_raw;
+            if(g_fecha_raw) {
+                let p = g_fecha_raw.split('-');
+                if(p.length === 3) g_fecha = `${p[2]}/${p[1]}/${p[0]}`;
+            }
+
+            let g_personal = document.getElementById('g_personal').value || "";
+            let g_tech_n = document.getElementById('g_tech_nombre').value || "";
+            let g_tech_d = document.getElementById('g_tech_dni').value || "";
+            let g_ven_n = document.getElementById('g_ventas_nombre').value || "";
+            let g_ven_d = document.getElementById('g_ventas_dni').value || "";
+
+            // 1. GENERAR PÁGINA 1: CABECERA Y DATOS DE CLIENTE
+            let pdfDocument = `
+                <div class="print-document">
+                    <table class="nefusac-form">
+                        <tr>
+                            <td rowspan="2" class="cell-logo" style="width:25%;">NEFUSAC</td>
+                            <td rowspan="2" colspan="3" class="cell-title">REPORTE DE REVISION TECNICA</td>
+                            <td colspan="2" class="cell-meta" style="width:25%;">CODIGO: SIG-R-115</td>
+                        </tr>
+                        <tr>
+                            <td class="cell-meta">VERSION: 00</td>
+                            <td class="cell-meta">FECHA: 15/04/2026</td>
+                        </tr>
+                        <tr><td colspan="6" class="cell-header-dark">DATOS DEL CLIENTE</td></tr>
+                        <tr>
+                            <td colspan="2" class="cell-header-light" style="width:33%;">CLIENTE O RAZÓN SOCIAL</td>
+                            <td colspan="2" class="cell-value" style="width:33%;">${g_cliente}</td>
+                            <td class="cell-header-light" style="width:16%;">R.U.C.</td>
+                            <td class="cell-value" style="width:18%;">${g_ruc}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="cell-header-light">PERSONA DE CONTACTO</td>
+                            <td colspan="2" class="cell-value">${g_contacto}</td>
+                            <td class="cell-header-light">TELEFONO</td>
+                            <td class="cell-value">${g_telefono}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="cell-header-light">DIRECCION</td>
+                            <td colspan="2" class="cell-value">${g_direccion}</td>
+                            <td class="cell-header-light">FECHA</td>
+                            <td class="cell-value">${g_fecha}</td>
+                        </tr>
+                        <tr><td colspan="6" class="cell-header-dark">DETALLE DE INSPECCION</td></tr>
+                        <tr>
+                            <td colspan="2" class="cell-header-light">PERSONAL PARTICIPANTE</td>
+                            <td colspan="4" class="cell-value">${g_personal}</td>
+                        </tr>
+                    </table>
+            `;
+
+            // 2. AGREGAR CADA VENTANA SECUENCIALMENTE
             listaPlanos.forEach((plano, index) => {
+                // UI MIniature
                 const item = document.createElement('div');
                 item.className = 'miniatura-item';
-                item.innerHTML = `<button class="btn-eliminar" onclick="eliminarDeLista(${index})">X</button><img src="${plano.img}"><span>${plano.titulo}</span>`;
+                item.innerHTML = `
+                    <button class="btn-eliminar" onclick="eliminarPlano(${index})">✕</button>
+                    <img src="${plano.img}">
+                    <span title="${plano.vano} - ${plano.ambiente}">${plano.vano}</span>
+                `;
                 galeria.appendChild(item);
 
-                const printPage = document.createElement('div');
-                printPage.className = 'print-page';
-                printPage.innerHTML = `<img src="${plano.img}">`;
-                printArea.appendChild(printPage);
+                // Add to PDF HTML
+                pdfDocument += `
+                    <div class="window-block">
+                        <div class="window-header">VANO: ${plano.vano} - ${plano.ambiente}</div>
+                        <div class="window-canvas">
+                            <img src="${plano.img}" alt="Plano">
+                        </div>
+                        <table class="nefusac-form" style="margin-bottom:0; border-top:none; border-left:none; border-right:none;">
+                            <tr>
+                                <td class="cell-header-light" style="width:16.6%;">COLOR</td>
+                                <td class="cell-header-light" style="width:16.6%;">MANIJA</td>
+                                <td colspan="2" class="cell-header-light" style="width:33.3%;">VIDRIO</td>
+                                <td colspan="2" class="cell-header-light" style="width:33.3%;">AMBIENTE DE INST.</td>
+                            </tr>
+                            <tr>
+                                <td class="cell-value" style="text-align:center;">${plano.color}</td>
+                                <td class="cell-value" style="text-align:center;">${plano.manija}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.vidrio}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.ambiente}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="cell-header-light">PISO DE INSTALACION</td>
+                                <td colspan="2" class="cell-header-light">RUTA DE ACCESO</td>
+                                <td colspan="2" class="cell-header-light">REQUISITOS DE SEGURIDAD</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.piso}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.ruta}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.seguridad}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="cell-header-light" style="text-align:left !important;">OBSERVACIONES:</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="cell-value" style="height: 50px; vertical-align:top;">${plano.observacion}</td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
             });
+
+            // 3. AGREGAR BLOQUE DE FIRMAS AL FINAL (4 Columnas para cuadrar exacto 50/50)
+            pdfDocument += `
+                    <table class="nefusac-form" style="page-break-inside: avoid; margin-top: 20px;">
+                        <tr>
+                            <td colspan="2" class="cell-header-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - TECNICO</td>
+                            <td colspan="2" class="cell-header-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - EJECUTIVO DE VENTAS</td>
+                        </tr>
+                        <tr>
+                            <td class="cell-header-light" style="width:15%;">NOMBRE</td>
+                            <td class="cell-value" style="width:35%;">${g_tech_n}</td>
+                            <td class="cell-header-light" style="width:15%;">NOMBRE</td>
+                            <td class="cell-value" style="width:35%;">${g_ven_n}</td>
+                        </tr>
+                        <tr>
+                            <td class="cell-header-light">DNI</td>
+                            <td class="cell-value">${g_tech_d}</td>
+                            <td class="cell-header-light">DNI</td>
+                            <td class="cell-value">${g_ven_d}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="cell-header-light" style="text-align:center !important;">FIRMA</td>
+                            <td colspan="2" class="cell-header-light" style="text-align:center !important;">FIRMA</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="cell-signatures"></td>
+                            <td colspan="2" class="cell-signatures"></td>
+                        </tr>
+                    </table>
+                </div> <!-- End print-document -->
+            `;
+
+            printArea.innerHTML = pdfDocument;
         }
-        
+
         function imprimirPDF() { 
-            if (listaPlanos.length === 0) {
-                alert("Primero debes guardar al menos un plano en la lista.");
-                return;
-            }
-            
-            let nombreReporte = document.getElementById('nombrePDF').value.trim();
-            if (nombreReporte === "") nombreReporte = "Reporte_de_Obra";
-            nombreReporte = nombreReporte.replace(/[^a-zA-Z0-9_\- ]/g, "_");
-
-            const tituloOriginal = document.title;
-            document.title = nombreReporte;
-
+            let nombreReporte = document.getElementById('nombrePDF').value.trim() || "Reporte_NEFUSAC";
+            document.title = nombreReporte.replace(/[^a-zA-Z0-9_\- ]/g, "_");
             window.print();
-
-            setTimeout(() => {
-                document.title = tituloOriginal;
-            }, 1000);
+            setTimeout(() => { document.title = "PVC Creator - NEFUSAC Stable Pro"; }, 1000);
         }
 
         window.onload = function() {
-            toggleBanderola(); toggleLaterales(); toggleFijoParcial(); toggleFijoCentro(); dibujar();
+            updateUI();
         };
     </script>
 </body>
