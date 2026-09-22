@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NEFUSAC - MEDICION VENTANAS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg-body: #0f172a;
             --panel-bg: #1e293b;
-            --input-bg: #0f172a;
             --border: #334155;
             --primary: #0ea5e9;
-            --primary-hover: #0284c7;
             --text-main: #f8fafc;
             --text-label: #94a3b8;
             --danger: #ef4444;
@@ -20,213 +19,54 @@
             --success-hover: #059669;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            margin: 0;
-            padding: 15px;
-            color: var(--text-main);
-            height: 100vh;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); margin: 0; padding: 15px; color: var(--text-main); height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-        /* Estructura Principal */
-        .layout {
-            display: flex;
-            gap: 20px;
-            flex-grow: 1;
-            max-width: 1500px;
-            margin: 0 auto;
-            width: 100%;
-            height: calc(100vh - 30px);
-        }
+        .layout { display: flex; gap: 20px; flex-grow: 1; max-width: 1500px; margin: 0 auto; width: 100%; height: calc(100vh - 30px); }
 
-        /* Panel Izquierdo */
-        .panel {
-            width: 420px;
-            background: var(--panel-bg);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-
-        .panel-header {
-            padding: 20px;
-            background: #111827;
-            border-bottom: 1px solid var(--border);
-            text-align: center;
-        }
-
+        .panel { width: 420px; background: var(--panel-bg); border-radius: 12px; display: flex; flex-direction: column; border: 1px solid var(--border); flex-shrink: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .panel-header { padding: 20px; background: #111827; border-bottom: 1px solid var(--border); text-align: center; }
         .panel-header h1 { margin: 0; font-size: 20px; color: var(--primary); font-weight: 700; }
+        .panel-body { padding: 20px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; }
+        .panel-footer { padding: 15px 20px; border-top: 1px solid var(--border); background: #111827; }
 
-        .panel-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .panel-footer {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border);
-            background: #111827;
-        }
-
-        /* Acordeones */
-        details {
-            background: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-        summary {
-            padding: 15px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            user-select: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-main);
-        }
+        details { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; }
+        summary { padding: 15px; font-weight: 600; font-size: 14px; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
         summary::after { content: '▼'; font-size: 12px; color: var(--primary); }
         details[open] summary { border-bottom: 1px solid var(--border); }
         details[open] summary::after { content: '▲'; }
-        
         .details-content { padding: 15px; display: flex; flex-direction: column; gap: 15px; }
 
-        /* Formularios limpios */
         .form-group { display: flex; flex-direction: column; gap: 8px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-
         label { font-size: 12px; color: var(--text-label); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         
         input[type="text"], input[type="number"], input[type="date"], select {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-body);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: white;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            box-sizing: border-box;
-            transition: border 0.2s;
+            width: 100%; padding: 12px; background: var(--bg-body); border: 1px solid var(--border);
+            border-radius: 6px; color: white; font-size: 14px; font-family: 'Inter', sans-serif; box-sizing: border-box;
         }
         input:focus, select:focus { border-color: var(--primary); outline: none; }
-
         .form-group .hint { font-size: 11px; color: var(--success); font-weight: 600; text-align: right; margin-top: -4px;}
 
-        /* Botones */
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: var(--success-hover); }
-        .btn-pdf { background: var(--danger); color: white; width: auto; padding: 12px 20px;}
-        .btn-pdf:hover { background: #dc2626; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; color:white;}
+        .btn-success { background: var(--success); }
+        .btn-pdf { background: var(--danger); width: auto; padding: 12px 20px;}
 
-        /* Contenedor Derecho */
-        .workspace {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-            min-width: 0;
-        }
+        .workspace { flex-grow: 1; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; min-width: 0; }
+        .canvas-card { background: white; padding: 20px; border-radius: 12px; display: flex; justify-content: center; align-items: center; }
+        canvas { max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 
-        .canvas-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        canvas { max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 4px; }
-
-        .report-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            color: #1e293b;
-        }
-
-        .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 15px;
-        }
-
+        .report-card { background: white; padding: 20px; border-radius: 12px; color: #1e293b; }
+        .report-header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0; margin-bottom: 15px; }
         .galeria-miniaturas { display: flex; flex-wrap: wrap; gap: 15px; }
         .miniatura-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; width: 140px; text-align: center; position: relative; }
         .miniatura-item img { max-width: 100%; height: auto; border: 1px solid #cbd5e1; border-radius: 4px;}
         .miniatura-item span { display: block; font-size: 11px; margin-top: 8px; font-weight: 700; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-        .btn-eliminar { position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-eliminar { position: absolute; top: -8px; right: -8px; background: var(--danger); border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; }
 
-        /* IMPRESION NEFUSAC OFICIAL */
-        #printArea { display: none; }
-        @media print {
-            @page { size: A4 portrait; margin: 8mm; }
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { display: block; position: absolute; left: 0; top: 0; width: 100%; }
-            body { background: white; margin: 0; padding: 0; font-family: Arial, sans-serif; color: black; }
-            
-            .print-document { width: 100%; }
-            
-            table.nefusac-form { width: 100%; border-collapse: collapse; border: 2px solid #000; font-size: 11px; table-layout: fixed; }
-            table.nefusac-form th, table.nefusac-form td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: middle; }
-            
-            .cell-title { text-align: center !important; font-weight: bold; font-size: 16px !important; letter-spacing: 1px;}
-            .cell-logo { text-align: center !important; font-weight: 900; font-size: 18px !important; width: 25%;}
-            .cell-meta { font-size: 9px !important; line-height: 1.4; width: 20%;}
-            .cell-header-dark { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; font-weight: bold; font-size: 12px !important; text-align: center !important;}
-            .cell-header-light { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; font-weight: bold; font-size: 10px !important; text-align: center !important;}
-            .cell-value { font-weight: normal; color: #1e293b;}
-            
-            /* Contenedor de cada ventana */
-            .window-block { page-break-inside: avoid; margin-bottom: 25px; border: 2px solid #000; border-top: none; }
-            .window-header { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; font-weight: bold; font-size: 13px !important; text-align: center !important; padding: 8px; border-bottom: 2px solid #000; }
-            .window-canvas { text-align: center !important; padding: 15px !important; background: #fff;}
-            .window-canvas img { max-width: 100%; max-height: 400px; object-fit: contain; }
-            
-            /* Firmas */
-            .cell-signatures { height: 70px; }
-        }
-
-        /* RESPONSIVE CELULARES */
         @media (max-width: 1024px) {
             .layout { flex-direction: column; height: auto; }
             .panel { width: 100%; max-height: none; }
@@ -245,7 +85,6 @@
             </div>
             
             <div class="panel-body">
-                
                 <!-- 1. DATOS GLOBALES -->
                 <details>
                     <summary>1. Datos Globales de Obra</summary>
@@ -281,7 +120,7 @@
                     <div class="details-content">
                         <div class="form-row">
                             <div class="form-group"><label>Cód. Vano</label><input type="text" id="v_vano" value="V01" onchange="dibujar()"></div>
-                            <div class="form-group"><label>Ambiente</label><input type="text" id="v_ambiente" value="Dormitorio Principal" onchange="dibujar()"></div>
+                            <div class="form-group"><label>Ambiente</label><input type="text" id="v_ambiente" value="Habitacion" onchange="dibujar()"></div>
                         </div>
                         <div class="form-row">
                             <div class="form-group"><label>Color PVC</label><input type="text" id="v_color" value="Blanco"></div>
@@ -373,7 +212,7 @@
                         <div class="form-group">
                             <label>Eje Central de División (mm)</label>
                             <input type="number" id="poste" value="750" onchange="updateUI()">
-                            <div class="hint" style="color: var(--text-label);">Coloca "0" para marco vacío</div>
+                            <div class="hint" style="color: var(--text-label);">Coloca "0" para usar un paño único</div>
                         </div>
 
                         <div class="form-group">
@@ -389,7 +228,7 @@
 
                         <div class="form-row" style="margin-top: 10px;">
                             <div class="form-group">
-                                <label>Paño Izquierdo</label>
+                                <label id="labelTipoIzq">Paño Izquierdo</label>
                                 <select id="tipoIzq" onchange="updateUI()">
                                     <option value="fijo">Paño Fijo</option>
                                     <option value="corrediza_izq">Corrediza (←)</option>
@@ -402,12 +241,12 @@
                                     <option value="oscilante">Oscilante</option>
                                 </select>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" id="wrapPañoDer">
                                 <label>Paño Derecho</label>
                                 <select id="tipoDer" onchange="updateUI()">
                                     <option value="fijo">Paño Fijo</option>
-                                    <option value="corrediza_der">Corrediza (→)</option>
-                                    <option value="corrediza_izq" selected>Corrediza (←)</option>
+                                    <option value="corrediza_der" selected>Corrediza (→)</option>
+                                    <option value="corrediza_izq">Corrediza (←)</option>
                                     <option value="bat_der">Batiente (MI)</option>
                                     <option value="bat_izq">Batiente (MD)</option>
                                     <option value="oscilobat_der">Oscilobatiente (MI)</option>
@@ -422,10 +261,10 @@
                 </details>
             </div>
             
-            <!-- PIE DE PANEL (BOTÓN SIEMPRE VISIBLE) -->
+            <!-- PIE DE PANEL -->
             <div class="panel-footer">
                 <button class="btn btn-success" onclick="guardarYDescargar()">
-                    💾 Añadir a PDF y Descargar Ventana
+                    💾 Guardar Plano y Descargar PNG
                 </button>
             </div>
         </div>
@@ -440,25 +279,22 @@
                 <div class="report-header">
                     <div>
                         <h2 style="color:#1e293b; border:none; margin:0; font-size:18px;">📋 Reporte PDF</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #64748b;">Los planos que guardes aparecerán aquí abajo listos para impresión técnica.</p>
+                        <p style="margin: 5px 0 0 0; font-size: 13px; color: #64748b;">Los planos guardados aparecerán aquí listos para el PDF final.</p>
                     </div>
                     <div style="display:flex; gap:10px; align-items:flex-end;">
                         <div class="form-group" style="width: 200px;">
-                            <label style="color:#64748b;">Nombre del Archivo</label>
-                            <input type="text" id="nombrePDF" value="Proyecto_" style="background:white; color:#1e293b; border:1px solid #cbd5e1;">
+                            <label style="color:#64748b;">Nombre del Archivo PDF</label>
+                            <input type="text" id="nombrePDF" value="Medicion_" style="background:white; color:#1e293b; border:1px solid #cbd5e1;">
                         </div>
                         <button class="btn btn-pdf" onclick="imprimirPDF()" id="btnImprimir">📄 Descargar PDF</button>
                     </div>
                 </div>
                 <div class="galeria-miniaturas" id="galeria">
-                    <!-- Elementos vacíos al iniciar -->
+                    <!-- Miniaturas van aqui -->
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- CONTENEDOR OCULTO PARA IMPRESIÓN OFICIAL NEFUSAC -->
-    <div id="printArea"></div>
 
     <script>
         const canvas = document.getElementById('lienzo');
@@ -466,8 +302,11 @@
         const anchoMarco = 55, anchoHoja = 45, anchoPoste = 55; 
         let listaPlanos = [];
 
-        // Inicializar Fecha actual
-        document.getElementById('g_fecha').valueAsDate = new Date();
+        let fechaLocal = new Date();
+        let anio = fechaLocal.getFullYear();
+        let mes = ('0' + (fechaLocal.getMonth() + 1)).slice(-2);
+        let dia = ('0' + fechaLocal.getDate()).slice(-2);
+        document.getElementById('g_fecha').value = anio + '-' + mes + '-' + dia;
 
         function getMinimo(id1, id2, id3) {
             let v1 = document.getElementById(id1).value; let v2 = document.getElementById(id2).value; let v3 = document.getElementById(id3).value;
@@ -478,60 +317,108 @@
             return arr.length > 0 ? Math.min(...arr) : 0;
         }
 
-        // CONTROL DE INTERFAZ DIRECTA (Reemplaza los toggles complejos)
+        // CONTROL DE INTERFAZ DIRECTA
         function updateUI() {
-            // Banderolas
             let tBand = document.getElementById('tipoBanderola').value;
             document.getElementById('wrapBanderolas').style.display = (tBand !== 'none') ? 'flex' : 'none';
             document.getElementById('wrapBandSup').style.display = (tBand === 'sup' || tBand === 'ambos') ? 'block' : 'none';
             document.getElementById('wrapBandInf').style.display = (tBand === 'inf' || tBand === 'ambos') ? 'block' : 'none';
 
-            // Laterales
             let tLat = document.getElementById('tipoLaterales').value;
             document.getElementById('wrapLaterales').style.display = (tLat !== 'none') ? 'flex' : 'none';
             document.getElementById('wrapLatIzq').style.display = (tLat === 'izq' || tLat === 'ambos') ? 'block' : 'none';
             document.getElementById('wrapLatDer').style.display = (tLat === 'der' || tLat === 'ambos') ? 'block' : 'none';
 
-            // Parcial
             let tParcial = document.getElementById('tipoParcial').value;
             document.getElementById('wrapParcial').style.display = (tParcial !== 'none') ? 'block' : 'none';
 
-            // Fijo Central
             let tFijoC = document.getElementById('tipoFijoCentro').value;
             document.getElementById('wrapFijoCentro').style.display = (tFijoC === 'si') ? 'block' : 'none';
+
+            let posteReal = parseFloat(document.getElementById('poste').value.trim());
+            if (isNaN(posteReal) || posteReal === 0) {
+                document.getElementById('wrapPañoDer').style.display = 'none';
+                document.getElementById('labelTipoIzq').innerText = 'Paño Único (Completo)';
+            } else {
+                document.getElementById('wrapPañoDer').style.display = 'block';
+                document.getElementById('labelTipoIzq').innerText = 'Paño Izquierdo';
+            }
 
             dibujar();
         }
 
-        // MOTOR 3D PVC
-        function drawPVCProfile(x, y, w, h, isVertical) {
+        // ====== MOTOR 3D PVC (NEUMORFISMO) ======
+        function drawBevel(x, y, w, h, t, isOuter) {
             ctx.save();
-            ctx.fillStyle = '#f8fafc'; ctx.fillRect(x, y, w, h);
-            let grad;
-            if (isVertical) {
-                grad = ctx.createLinearGradient(x, y, x + w, y);
-                grad.addColorStop(0, "rgba(0,0,0,0.1)"); grad.addColorStop(0.15, "rgba(255,255,255,0.8)");
-                grad.addColorStop(0.85, "rgba(255,255,255,0.8)"); grad.addColorStop(1, "rgba(0,0,0,0.15)");
-            } else {
-                grad = ctx.createLinearGradient(x, y, x, y + h);
-                grad.addColorStop(0, "rgba(255,255,255,0.9)"); grad.addColorStop(0.2, "rgba(255,255,255,0.4)");
-                grad.addColorStop(0.8, "rgba(0,0,0,0.02)"); grad.addColorStop(1, "rgba(0,0,0,0.18)");
-            }
-            ctx.fillStyle = grad; ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(x, y, w, h);
+            
+            // Top bevel (iluminado)
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+w,y); ctx.lineTo(x+w-t,y+t); ctx.lineTo(x+t,y+t); ctx.fill();
+            // Bottom bevel (sombra)
+            ctx.fillStyle = '#e2e8f0';
+            ctx.beginPath(); ctx.moveTo(x,y+h); ctx.lineTo(x+w,y+h); ctx.lineTo(x+w-t,y+h-t); ctx.lineTo(x+t,y+h-t); ctx.fill();
+            // Left bevel
+            ctx.fillStyle = '#f1f5f9';
+            ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+h); ctx.lineTo(x+t,y+h-t); ctx.lineTo(x+t,y+t); ctx.fill();
+            // Right bevel
+            ctx.fillStyle = '#cbd5e1';
+            ctx.beginPath(); ctx.moveTo(x+w,y); ctx.lineTo(x+w,y+h); ctx.lineTo(x+w-t,y+h-t); ctx.lineTo(x+w-t,y+t); ctx.fill();
+
+            // Miter joints (Lineas diagonales esquinas)
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(x,y); ctx.lineTo(x+t,y+t);
+            ctx.moveTo(x+w,y); ctx.lineTo(x+w-t,y+t);
+            ctx.moveTo(x,y+h); ctx.lineTo(x+t,y+h-t);
+            ctx.moveTo(x+w,y+h); ctx.lineTo(x+w-t,y+h-t);
+            ctx.stroke();
+
+            // Bordes rectos
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = isOuter ? 2.5 : 1.5;
+            ctx.strokeRect(x, y, w, h);
+            ctx.strokeStyle = '#475569'; ctx.lineWidth = 1;
+            ctx.strokeRect(x+t, y+t, w-t*2, h-t*2);
+            
+            ctx.restore();
+        }
+
+        function drawMullion(x, y, w, h, isVertical) {
+            ctx.save();
+            ctx.fillStyle = '#f1f5f9'; ctx.fillRect(x,y,w,h);
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            if(isVertical) ctx.fillRect(x,y,4,h); else ctx.fillRect(x,y,w,4);
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            if(isVertical) ctx.fillRect(x+w-4,y,4,h); else ctx.fillRect(x,y+h-4,w,4);
+            
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.strokeRect(x,y,w,h);
             ctx.restore();
         }
 
         function drawGlass(x, y, w, h) {
             ctx.save();
-            ctx.fillStyle = '#e0f2fe'; ctx.fillRect(x, y, w, h);
-            ctx.shadowColor = 'rgba(0,0,0,0.15)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
-            ctx.strokeStyle = 'transparent'; ctx.strokeRect(x, y, w, h); ctx.shadowColor = 'transparent';
-            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w * 0.5, y); ctx.lineTo(x, y + h * 0.7); ctx.closePath();
-            let glassGrad = ctx.createLinearGradient(x, y, x + w*0.5, y + h*0.7);
-            glassGrad.addColorStop(0, "rgba(255,255,255,0.6)"); glassGrad.addColorStop(1, "rgba(255,255,255,0)");
-            ctx.fillStyle = glassGrad; ctx.fill();
-            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, h);
+            // Burlete perimetral negro (Gasket)
+            let gasket = 5;
+            ctx.fillStyle = '#171717';
+            ctx.fillRect(x, y, w, h);
+            
+            let gx = x + gasket, gy = y + gasket, gw = w - gasket*2, gh = h - gasket*2;
+            
+            // Fondo cristal limpio
+            let glassGrad = ctx.createLinearGradient(gx, gy, gx + gw, gy + gh);
+            glassGrad.addColorStop(0, "#f0f9ff");
+            glassGrad.addColorStop(0.5, "#e0f2fe");
+            glassGrad.addColorStop(1, "#bae6fd");
+            ctx.fillStyle = glassGrad;
+            ctx.fillRect(gx, gy, gw, gh);
+            
+            // Reflejo superior muy sutil
+            ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+            ctx.fillRect(gx, gy, gw, gh * 0.15);
+
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+            ctx.strokeRect(gx, gy, gw, gh);
             ctx.restore();
         }
 
@@ -547,11 +434,11 @@
             ctx.beginPath(); ctx.moveTo(x2 - tick, y2 + tick); ctx.lineTo(x2 + tick, y2 - tick); ctx.stroke();
             let txtW = ctx.measureText(texto).width + 16;
             if (!isVertical) { 
-                ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(x1 + (x2-x1)/2 - txtW/2, y1 - 24, txtW, 20);
+                ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(x1 + (x2-x1)/2 - txtW/2, y1 - 24, txtW, 20);
                 ctx.fillStyle = "#0f172a"; ctx.fillText(texto, x1 + (x2 - x1) / 2, y1 - 14);
             } else { 
                 ctx.translate(x1 - 24, y1 + (y2 - y1) / 2); ctx.rotate(-Math.PI / 2);
-                ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(-txtW/2, -10, txtW, 20);
+                ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(-txtW/2, -10, txtW, 20);
                 ctx.fillStyle = "#0f172a"; ctx.fillText(texto, 0, 0);
             }
             ctx.restore();
@@ -581,16 +468,25 @@
             ctx.restore();
         }
 
-        function dibujarSeccion(x, y, w, h, tipo, scale) {
-            const hojaScaled = anchoHoja * scale;
+        function dibujarSeccion(x, y, w, h, tipo, scale, castShadow) {
+            ctx.save();
+            if (castShadow) {
+                // Sombra de superposición para corredizas
+                ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = (tipo.includes('izq')) ? -6 : 6; 
+            }
+
             if (tipo !== 'fijo' && tipo !== 'fijo_puro') {
-                drawPVCProfile(x, y, w, h, false); 
-                drawPVCProfile(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2, true); 
-                drawGlass(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2);
-                dibujarSimbolo(x + hojaScaled, y + hojaScaled, w - hojaScaled*2, h - hojaScaled*2, tipo);
+                const hojaS = anchoHoja * scale;
+                drawBevel(x, y, w, h, hojaS, false);
+                ctx.shadowColor = 'transparent'; 
+                drawGlass(x + hojaS, y + hojaS, w - hojaS*2, h - hojaS*2);
+                dibujarSimbolo(x + hojaS, y + hojaS, w - hojaS*2, h - hojaS*2, tipo);
             } else {
                 drawGlass(x, y, w, h);
             }
+            ctx.restore();
         }
 
         function dibujar() {
@@ -631,9 +527,8 @@
             let hasFijoCentro = (document.getElementById('tipoFijoCentro').value === 'si');
             let anchoFijoCentroReal = parseFloat(document.getElementById('anchoFijoCentro').value) || 0;
 
-            // TITULO DEL CANVAS
             ctx.fillStyle = '#0f172a'; ctx.font = '800 24px "Inter", Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-            ctx.fillText("Ref: " + document.getElementById('v_ambiente').value + " (" + v_vano + ")", 40, 40);
+            ctx.fillText("Ref: " + v_vano + " - " + document.getElementById('v_ambiente').value, 40, 40);
 
             if(anchoReal <= 0 || altoReal <= 0) return;
 
@@ -654,11 +549,12 @@
             const hojaS = anchoHoja * scale;
 
             // 1. MARCO EXTERIOR 3D
-            drawPVCProfile(x0, y0, w, h, false);
+            drawBevel(x0, y0, w, h, marcoS, true);
             ctx.fillStyle = '#fff'; ctx.fillRect(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
 
+            // POSTE = 0 (Un solo paño operable o fijo)
             if (posteReal === 0 && !hasBandSup && !hasBandInf && !hasLatIzq && !hasLatDer) {
-                drawGlass(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
+                dibujarSeccion(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2, tipoIzq, scale, false);
                 dibujarCota(x0, y0 - 55, x0 + w, y0 - 55, anchoReal + ' mm', false); 
                 dibujarCota(x0 - 65, y0, x0 - 65, y0 + h, altoReal + ' mm', true);
                 return; 
@@ -671,15 +567,15 @@
             if (hasLatIzq && latIzqReal > 0) {
                 let cPoste = x0 + latIzqReal * scale;
                 let fW = cPoste - posteS/2 - ix;
-                dibujarSeccion(ix, iy, fW, iendY - iy, 'fijo_puro', scale);
-                drawPVCProfile(cPoste - posteS/2, iy, posteS, iendY - iy, true);
+                dibujarSeccion(ix, iy, fW, iendY - iy, 'fijo_puro', scale, false);
+                drawMullion(cPoste - posteS/2, iy, posteS, iendY - iy, true);
                 ix = cPoste + posteS/2;
             }
             if (hasLatDer && latDerReal > 0) {
                 let cPoste = x0 + w - latDerReal * scale;
                 let fW = iendX - (cPoste + posteS/2);
-                dibujarSeccion(cPoste + posteS/2, iy, fW, iendY - iy, 'fijo_puro', scale);
-                drawPVCProfile(cPoste - posteS/2, iy, posteS, iendY - iy, true);
+                dibujarSeccion(cPoste + posteS/2, iy, fW, iendY - iy, 'fijo_puro', scale, false);
+                drawMullion(cPoste - posteS/2, iy, posteS, iendY - iy, true);
                 iendX = cPoste - posteS/2;
             }
 
@@ -689,31 +585,31 @@
             if (hasBandSup && bandSupReal > 0) {
                 let cTrav = y0 + bandSupReal * scale;
                 let fH = cTrav - posteS/2 - iy;
-                dibujarSeccion(ix, iy, iw, fH, 'fijo_puro', scale);
-                drawPVCProfile(ix, cTrav - posteS/2, iw, posteS, false);
+                dibujarSeccion(ix, iy, iw, fH, 'fijo_puro', scale, false);
+                drawMullion(ix, cTrav - posteS/2, iw, posteS, false);
                 iy = cTrav + posteS/2;
             }
             if (hasBandInf && bandInfReal > 0) {
                 let cTrav = y0 + h - bandInfReal * scale;
                 let fH = iendY - (cTrav + posteS/2);
-                dibujarSeccion(ix, cTrav + posteS/2, iw, fH, 'fijo_puro', scale);
-                drawPVCProfile(ix, cTrav - posteS/2, iw, posteS, false);
+                dibujarSeccion(ix, cTrav + posteS/2, iw, fH, 'fijo_puro', scale, false);
+                drawMullion(ix, cTrav - posteS/2, iw, posteS, false);
                 iendY = cTrav - posteS/2;
             }
 
             let ih = iendY - iy;
 
             // 4. AREA CENTRAL
-            function dibujarColumnaParcial(xC, yC, wC, hC, tipo, isIzq) {
+            function dibujarColumnaParcial(xC, yC, wC, hC, tipo, isIzq, isFrontSash) {
                 if (hasParcial && ladoParcial === (isIzq ? 'izq' : 'der') && parcialAltoReal > 0 && !hasFijoCentro) {
                     let cTravParcial;
                     if (posParcial === 'sup') {
                         cTravParcial = y0 + parcialAltoReal * scale;
                         if (cTravParcial > yC && cTravParcial < yC + hC) {
                             let fH = cTravParcial - posteS/2 - yC;
-                            dibujarSeccion(xC, yC, wC, fH, 'fijo_puro', scale);
-                            drawPVCProfile(xC, cTravParcial - posteS/2, wC, posteS, false);
-                            dibujarSeccion(xC, cTravParcial + posteS/2, wC, (yC + hC) - (cTravParcial + posteS/2), tipo, scale);
+                            dibujarSeccion(xC, yC, wC, fH, 'fijo_puro', scale, false);
+                            drawMullion(xC, cTravParcial - posteS/2, wC, posteS, false);
+                            dibujarSeccion(xC, cTravParcial + posteS/2, wC, (yC + hC) - (cTravParcial + posteS/2), tipo, scale, isFrontSash);
                             let cX = isIzq ? (x0 - 130) : (x0 + w + 80);
                             dibujarCota(cX, y0, cX, y0 + (parcialAltoReal*scale), parcialAltoReal + ' mm', true);
                             return;
@@ -722,16 +618,16 @@
                         cTravParcial = y0 + h - parcialAltoReal * scale;
                         if (cTravParcial > yC && cTravParcial < yC + hC) {
                             let fH = (yC + hC) - (cTravParcial + posteS/2);
-                            dibujarSeccion(xC, yC, wC, cTravParcial - posteS/2 - yC, tipo, scale);
-                            drawPVCProfile(xC, cTravParcial - posteS/2, wC, posteS, false);
-                            dibujarSeccion(xC, cTravParcial + posteS/2, wC, fH, 'fijo_puro', scale);
+                            dibujarSeccion(xC, yC, wC, cTravParcial - posteS/2 - yC, tipo, scale, isFrontSash);
+                            drawMullion(xC, cTravParcial - posteS/2, wC, posteS, false);
+                            dibujarSeccion(xC, cTravParcial + posteS/2, wC, fH, 'fijo_puro', scale, false);
                             let cX = isIzq ? (x0 - 130) : (x0 + w + 80);
                             dibujarCota(cX, y0 + h - (parcialAltoReal*scale), cX, y0 + h, parcialAltoReal + ' mm', true);
                             return;
                         }
                     }
                 }
-                dibujarSeccion(xC, yC, wC, hC, tipo, scale);
+                dibujarSeccion(xC, yC, wC, hC, tipo, scale, isFrontSash);
             }
 
             if (posteReal > 0 && iw > 0 && ih > 0) {
@@ -748,16 +644,16 @@
                     if (esCorrediza) {
                         let wIzq = (xPoste1 - ix) + (hojaS / 2); let xCentro = xPoste1 - (hojaS / 2);
                         let wCentro = (xPoste2 - xPoste1) + hojaS; let xDer = xPoste2 - (hojaS / 2); let wDer = iendX - xDer;
-                        dibujarSeccion(xCentro, iy, wCentro, ih, 'fijo', scale); 
-                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true); 
-                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false); 
+                        dibujarSeccion(xCentro, iy, wCentro, ih, 'fijo', scale, false); 
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, true); 
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, true); 
                     } else {
                         let wIzq = (xPoste1 - posteS/2) - ix; let xDer = xPoste2 + posteS/2; let wDer = iendX - xDer;
-                        dibujarSeccion(xPoste1 + posteS/2, iy, xPoste2 - xPoste1 - posteS, ih, 'fijo_puro', scale);
-                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
-                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
-                        drawPVCProfile(xPoste1 - posteS/2, iy, posteS, ih, true);
-                        drawPVCProfile(xPoste2 - posteS/2, iy, posteS, ih, true);
+                        dibujarSeccion(xPoste1 + posteS/2, iy, xPoste2 - xPoste1 - posteS, ih, 'fijo_puro', scale, false);
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, false);
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, false);
+                        drawMullion(xPoste1 - posteS/2, iy, posteS, ih, true);
+                        drawMullion(xPoste2 - posteS/2, iy, posteS, ih, true);
                     }
                     dibujarCota(x0, y0 + h + 55, xPoste1, y0 + h + 55, Math.round((xPoste1-x0)/scale) + ' mm', false); 
                     dibujarCota(xPoste1, y0 + h + 55, xPoste2, y0 + h + 55, Math.round((xPoste2-xPoste1)/scale) + ' mm', false); 
@@ -765,19 +661,25 @@
                 } else {
                     if (esCorrediza) {
                         let wIzq = (cEje - ix) + (hojaS / 2); let xDer = cEje - (hojaS / 2); let wDer = iendX - xDer;
-                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
-                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
+                        let isDerFront = tipoDer.startsWith('corrediza');
+                        if (isDerFront) {
+                            dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, false);
+                            dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, true);
+                        } else {
+                            dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, false);
+                            dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, true);
+                        }
                     } else {
                         let wIzq = (cEje - posteS/2) - ix; let xDer = cEje + posteS/2; let wDer = iendX - xDer;
-                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true);
-                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false);
-                        drawPVCProfile(cEje - posteS/2, iy, posteS, ih, true);
+                        dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, false);
+                        dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, false);
+                        drawMullion(cEje - posteS/2, iy, posteS, ih, true);
                     }
                     dibujarCota(x0, y0 + h + 55, cEje, y0 + h + 55, Math.round((cEje-x0)/scale) + ' mm', false); 
                     dibujarCota(cEje, y0 + h + 55, x0 + w, y0 + h + 55, Math.round((x0+w-cEje)/scale) + ' mm', false); 
                 }
             } else if (posteReal === 0 && iw > 0 && ih > 0) {
-                dibujarColumnaParcial(ix, iy, iw, ih, tipoIzq, true);
+                dibujarColumnaParcial(ix, iy, iw, ih, tipoIzq, true, false);
             }
 
             // COTAS GENERALES EXTERNAS (Nivel 1)
@@ -791,19 +693,25 @@
             if(hasBandInf && bandInfReal > 0) dibujarCota(x0 - 105, y0 + h - (bandInfReal*scale), x0 - 105, y0 + h, bandInfReal + ' mm', true);
         }
 
-        function exportarIndividual() {
-            let tituloRaw = document.getElementById('v_vano').value.trim() || "Plano_Ventana";
-            let nombreArchivo = tituloRaw.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png';
-            const link = document.createElement('a');
-            link.download = nombreArchivo; link.href = canvas.toDataURL('image/png'); link.click();
+        function descargarImagen(dataUrl, nombreArchivo) {
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = dataUrl;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); }, 100);
         }
 
-        function guardarPlano() {
+        function guardarYDescargar() {
             try {
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                let v_vano_raw = document.getElementById('v_vano').value || "V-00";
+                
                 let plano = {
                     id: Date.now(),
-                    img: canvas.toDataURL('image/png'),
-                    vano: document.getElementById('v_vano').value || "V-00",
+                    img: imgData,
+                    vano: v_vano_raw,
                     ambiente: document.getElementById('v_ambiente').value || "-",
                     color: document.getElementById('v_color').value || "-",
                     manija: document.getElementById('v_manija').value || "-",
@@ -813,25 +721,23 @@
                     seguridad: document.getElementById('v_seguridad').value || "-",
                     observacion: document.getElementById('v_observacion').value || "-"
                 };
+                
                 listaPlanos.push(plano);
                 renderizarGaleria();
                 
-                let v_input = document.getElementById('v_vano');
-                let textPart = v_input.value.replace(/[0-9]/g, '');
-                let numPart = v_input.value.replace(/[^0-9]/g, '');
+                let nombreSeguro = v_vano_raw.replace(/[^a-z0-9]/gi, '_').toUpperCase() + '_Plano.png';
+                descargarImagen(imgData, nombreSeguro);
+                
+                let textPart = v_vano_raw.replace(/[0-9]/g, '');
+                let numPart = v_vano_raw.replace(/[^0-9]/g, '');
                 if(numPart) {
                     let nextNum = parseInt(numPart) + 1;
-                    v_input.value = textPart + nextNum.toString().padStart(numPart.length, '0');
+                    document.getElementById('v_vano').value = textPart + nextNum.toString().padStart(numPart.length, '0');
                 }
             } catch (e) {
-                console.error("Error al guardar:", e);
-                alert("Ocurrió un error al procesar la imagen.");
+                console.error(e);
+                alert("Error al guardar la imagen. Reintenta.");
             }
-        }
-
-        function guardarYDescargar() {
-            exportarIndividual();
-            guardarPlano();
         }
 
         function eliminarPlano(index) {
@@ -841,8 +747,7 @@
 
         function renderizarGaleria() {
             const galeria = document.getElementById('galeria');
-            const printArea = document.getElementById('printArea');
-            galeria.innerHTML = ''; printArea.innerHTML = ''; 
+            galeria.innerHTML = ''; 
 
             if (listaPlanos.length === 0) {
                 galeria.innerHTML = '<span style="color:var(--text-label); font-size:13px; font-weight:normal;">No hay planos capturados.</span>';
@@ -852,13 +757,25 @@
 
             document.getElementById('btnImprimir').style.display = 'inline-flex';
 
+            listaPlanos.forEach((plano, index) => {
+                const item = document.createElement('div');
+                item.className = 'miniatura-item';
+                item.innerHTML = `
+                    <button class="btn-eliminar" onclick="eliminarPlano(${index})">✕</button>
+                    <img src="${plano.img}">
+                    <span title="${plano.vano} - ${plano.ambiente}">${plano.vano}</span>
+                `;
+                galeria.appendChild(item);
+            });
+        }
+
+        function generarHTMLParaPDF() {
             let g_cliente = document.getElementById('g_cliente').value || "";
             let g_ruc = document.getElementById('g_ruc').value || "";
             let g_contacto = document.getElementById('g_contacto').value || "";
             let g_telefono = document.getElementById('g_telefono').value || "";
             let g_direccion = document.getElementById('g_direccion').value || "";
             
-            // FORMATEAR FECHA A DD/MM/YYYY
             let g_fecha_raw = document.getElementById('g_fecha').value || "";
             let g_fecha = g_fecha_raw;
             if(g_fecha_raw) {
@@ -872,138 +789,190 @@
             let g_ven_n = document.getElementById('g_ventas_nombre').value || "";
             let g_ven_d = document.getElementById('g_ventas_dni').value || "";
 
-            // 1. GENERAR PÁGINA 1: CABECERA Y DATOS DE CLIENTE
-            let pdfDocument = `
-                <div class="print-document">
-                    <table class="nefusac-form">
+            let html = `
+                <style>
+                    .pdf-wrap { font-family: Arial, sans-serif; color: #000; font-size: 11px; width: 190mm; margin: 0 auto; background: #fff;}
+                    .pdf-wrap table { width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 25px; table-layout: fixed; }
+                    .pdf-wrap th, .pdf-wrap td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: middle; }
+                    .pdf-wrap .c-title { text-align: center; font-weight: bold; font-size: 16px; letter-spacing: 1px;}
+                    .pdf-wrap .c-logo { text-align: center; font-weight: 900; font-size: 18px; width: 25%;}
+                    .pdf-wrap .c-meta { font-size: 9px; width: 20%;}
+                    .pdf-wrap .c-dark { background-color: #e2e8f0; font-weight: bold; font-size: 12px; text-align: center;}
+                    .pdf-wrap .c-light { background-color: #f8fafc; font-weight: bold; font-size: 10px; text-align: center;}
+                    .pdf-wrap .c-val { font-weight: normal; color: #000;}
+                    .pdf-wrap .w-block { page-break-inside: avoid; margin-bottom: 25px; border: 2px solid #000; border-top: none; }
+                    .pdf-wrap .w-head { background-color: #e2e8f0; font-weight: bold; font-size: 13px; text-align: center; padding: 8px; border-bottom: 2px solid #000; border-top: 2px solid #000;}
+                    .pdf-wrap .w-img { text-align: center; padding: 15px; background: #fff;}
+                    .pdf-wrap .w-img img { max-width: 100%; max-height: 400px; object-fit: contain; }
+                    .pdf-wrap .page-break { page-break-after: always; height: 10px;}
+                </style>
+                <div class="pdf-wrap">
+                    <table>
                         <tr>
-                            <td rowspan="2" class="cell-logo" style="width:25%;">NEFUSAC</td>
-                            <td rowspan="2" colspan="3" class="cell-title">REPORTE DE REVISION TECNICA</td>
-                            <td colspan="2" class="cell-meta" style="width:25%;">CODIGO: SIG-R-115</td>
+                            <td rowspan="2" class="c-logo">NEFUSAC</td>
+                            <td rowspan="2" colspan="3" class="c-title">REPORTE DE REVISION TECNICA</td>
+                            <td colspan="2" class="c-meta">CODIGO: SIG-R-115</td>
                         </tr>
                         <tr>
-                            <td class="cell-meta">VERSION: 00</td>
-                            <td class="cell-meta">FECHA: 15/04/2026</td>
+                            <td class="c-meta">VERSION: 00</td>
+                            <td class="c-meta">FECHA: 15/04/2026</td>
                         </tr>
-                        <tr><td colspan="6" class="cell-header-dark">DATOS DEL CLIENTE</td></tr>
+                        <tr><td colspan="6" class="c-dark">DATOS DEL CLIENTE</td></tr>
                         <tr>
-                            <td colspan="2" class="cell-header-light" style="width:33%;">CLIENTE O RAZÓN SOCIAL</td>
-                            <td colspan="2" class="cell-value" style="width:33%;">${g_cliente}</td>
-                            <td class="cell-header-light" style="width:16%;">R.U.C.</td>
-                            <td class="cell-value" style="width:18%;">${g_ruc}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" class="cell-header-light">PERSONA DE CONTACTO</td>
-                            <td colspan="2" class="cell-value">${g_contacto}</td>
-                            <td class="cell-header-light">TELEFONO</td>
-                            <td class="cell-value">${g_telefono}</td>
+                            <td colspan="2" class="c-light" style="width:33%;">CLIENTE O RAZÓN SOCIAL</td>
+                            <td colspan="2" class="c-val" style="width:33%;">${g_cliente}</td>
+                            <td class="c-light" style="width:16%;">R.U.C.</td>
+                            <td class="c-val" style="width:18%;">${g_ruc}</td>
                         </tr>
                         <tr>
-                            <td colspan="2" class="cell-header-light">DIRECCION</td>
-                            <td colspan="2" class="cell-value">${g_direccion}</td>
-                            <td class="cell-header-light">FECHA</td>
-                            <td class="cell-value">${g_fecha}</td>
+                            <td colspan="2" class="c-light">PERSONA DE CONTACTO</td>
+                            <td colspan="2" class="c-val">${g_contacto}</td>
+                            <td class="c-light">TELEFONO</td>
+                            <td class="c-val">${g_telefono}</td>
                         </tr>
-                        <tr><td colspan="6" class="cell-header-dark">DETALLE DE INSPECCION</td></tr>
                         <tr>
-                            <td colspan="2" class="cell-header-light">PERSONAL PARTICIPANTE</td>
-                            <td colspan="4" class="cell-value">${g_personal}</td>
+                            <td colspan="2" class="c-light">DIRECCION</td>
+                            <td colspan="2" class="c-val">${g_direccion}</td>
+                            <td class="c-light">FECHA</td>
+                            <td class="c-val">${g_fecha}</td>
+                        </tr>
+                        <tr><td colspan="6" class="c-dark">DETALLE DE INSPECCION</td></tr>
+                        <tr>
+                            <td colspan="2" class="c-light">PERSONAL PARTICIPANTE</td>
+                            <td colspan="4" class="c-val">${g_personal}</td>
                         </tr>
                     </table>
             `;
 
-            // 2. AGREGAR CADA VENTANA SECUENCIALMENTE
-            listaPlanos.forEach((plano, index) => {
-                // UI MIniature
-                const item = document.createElement('div');
-                item.className = 'miniatura-item';
-                item.innerHTML = `
-                    <button class="btn-eliminar" onclick="eliminarPlano(${index})">✕</button>
-                    <img src="${plano.img}">
-                    <span title="${plano.vano} - ${plano.ambiente}">${plano.vano}</span>
-                `;
-                galeria.appendChild(item);
-
-                // Add to PDF HTML
-                pdfDocument += `
-                    <div class="window-block">
-                        <div class="window-header">VANO: ${plano.vano} - ${plano.ambiente}</div>
-                        <div class="window-canvas">
+            listaPlanos.forEach((plano) => {
+                html += `
+                    <div class="w-block">
+                        <div class="w-head">VANO: ${plano.vano} - ${plano.ambiente}</div>
+                        <div class="w-img">
                             <img src="${plano.img}" alt="Plano">
                         </div>
-                        <table class="nefusac-form" style="margin-bottom:0; border-top:none; border-left:none; border-right:none;">
+                        <table style="margin-bottom:0; border-top:none; border-left:none; border-right:none;">
                             <tr>
-                                <td class="cell-header-light" style="width:16.6%;">COLOR</td>
-                                <td class="cell-header-light" style="width:16.6%;">MANIJA</td>
-                                <td colspan="2" class="cell-header-light" style="width:33.3%;">VIDRIO</td>
-                                <td colspan="2" class="cell-header-light" style="width:33.3%;">AMBIENTE DE INST.</td>
+                                <td class="c-light" style="width:16.6%;">COLOR</td>
+                                <td class="c-light" style="width:16.6%;">MANIJA</td>
+                                <td colspan="2" class="c-light" style="width:33.3%;">VIDRIO</td>
+                                <td colspan="2" class="c-light" style="width:33.3%;">AMBIENTE DE INST.</td>
                             </tr>
                             <tr>
-                                <td class="cell-value" style="text-align:center;">${plano.color}</td>
-                                <td class="cell-value" style="text-align:center;">${plano.manija}</td>
-                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.vidrio}</td>
-                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.ambiente}</td>
+                                <td class="c-val" style="text-align:center;">${plano.color}</td>
+                                <td class="c-val" style="text-align:center;">${plano.manija}</td>
+                                <td colspan="2" class="c-val" style="text-align:center;">${plano.vidrio}</td>
+                                <td colspan="2" class="c-val" style="text-align:center;">${plano.ambiente}</td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="cell-header-light">PISO DE INSTALACION</td>
-                                <td colspan="2" class="cell-header-light">RUTA DE ACCESO</td>
-                                <td colspan="2" class="cell-header-light">REQUISITOS DE SEGURIDAD</td>
+                                <td colspan="2" class="c-light">PISO DE INSTALACION</td>
+                                <td colspan="2" class="c-light">RUTA DE ACCESO</td>
+                                <td colspan="2" class="c-light">REQUISITOS DE SEGURIDAD</td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.piso}</td>
-                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.ruta}</td>
-                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.seguridad}</td>
+                                <td colspan="2" class="c-val" style="text-align:center;">${plano.piso}</td>
+                                <td colspan="2" class="c-val" style="text-align:center;">${plano.ruta}</td>
+                                <td colspan="2" class="c-val" style="text-align:center;">${plano.seguridad}</td>
                             </tr>
-                            <tr>
-                                <td colspan="6" class="cell-header-light" style="text-align:left !important;">OBSERVACIONES:</td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="cell-value" style="height: 50px; vertical-align:top;">${plano.observacion}</td>
-                            </tr>
+                            <tr><td colspan="6" class="c-light" style="text-align:left;">OBSERVACIONES:</td></tr>
+                            <tr><td colspan="6" class="c-val" style="height: 50px; vertical-align:top;">${plano.observacion}</td></tr>
                         </table>
                     </div>
                 `;
             });
 
-            // 3. AGREGAR BLOQUE DE FIRMAS AL FINAL (4 Columnas para cuadrar exacto 50/50)
-            pdfDocument += `
-                    <table class="nefusac-form" style="page-break-inside: avoid; margin-top: 20px;">
+            html += `
+                    <div class="page-break"></div>
+                    <table style="page-break-inside: avoid; margin-top: 20px;">
                         <tr>
-                            <td colspan="2" class="cell-header-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - TECNICO</td>
-                            <td colspan="2" class="cell-header-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - EJECUTIVO DE VENTAS</td>
+                            <td colspan="2" class="c-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - TECNICO</td>
+                            <td colspan="2" class="c-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - EJECUTIVO DE VENTAS</td>
                         </tr>
                         <tr>
-                            <td class="cell-header-light" style="width:15%;">NOMBRE</td>
-                            <td class="cell-value" style="width:35%;">${g_tech_n}</td>
-                            <td class="cell-header-light" style="width:15%;">NOMBRE</td>
-                            <td class="cell-value" style="width:35%;">${g_ven_n}</td>
+                            <td class="c-light" style="width:15%;">NOMBRE</td>
+                            <td class="c-val" style="width:35%;">${g_tech_n}</td>
+                            <td class="c-light" style="width:15%;">NOMBRE</td>
+                            <td class="c-val" style="width:35%;">${g_ven_n}</td>
                         </tr>
                         <tr>
-                            <td class="cell-header-light">DNI</td>
-                            <td class="cell-value">${g_tech_d}</td>
-                            <td class="cell-header-light">DNI</td>
-                            <td class="cell-value">${g_ven_d}</td>
+                            <td class="c-light">DNI</td>
+                            <td class="c-val">${g_tech_d}</td>
+                            <td class="c-light">DNI</td>
+                            <td class="c-val">${g_ven_d}</td>
                         </tr>
                         <tr>
-                            <td colspan="2" class="cell-header-light" style="text-align:center !important;">FIRMA</td>
-                            <td colspan="2" class="cell-header-light" style="text-align:center !important;">FIRMA</td>
+                            <td colspan="2" class="c-light" style="text-align:center;">FIRMA</td>
+                            <td colspan="2" class="c-light" style="text-align:center;">FIRMA</td>
                         </tr>
                         <tr>
-                            <td colspan="2" class="cell-signatures"></td>
-                            <td colspan="2" class="cell-signatures"></td>
+                            <td colspan="2" style="height: 80px;"></td>
+                            <td colspan="2" style="height: 80px;"></td>
                         </tr>
                     </table>
-                </div> <!-- End print-document -->
+                </div>
             `;
-
-            printArea.innerHTML = pdfDocument;
+            return html;
         }
 
         function imprimirPDF() { 
+            if (listaPlanos.length === 0) {
+                alert("Primero debes guardar al menos un plano en la lista.");
+                return;
+            }
+
             let nombreReporte = document.getElementById('nombrePDF').value.trim() || "Reporte_NEFUSAC";
-            document.title = nombreReporte.replace(/[^a-zA-Z0-9_\- ]/g, "_");
-            window.print();
-            setTimeout(() => { document.title = "NEFUSAC MEDICION VENTANAS"; }, 1000);
+            nombreReporte = nombreReporte.replace(/[^a-zA-Z0-9_\- ]/g, "_");
+
+            // 1. Crear un contenedor temporal visible en pantalla completa (Flash Render)
+            const renderWrapper = document.createElement('div');
+            renderWrapper.style.position = 'fixed';
+            renderWrapper.style.top = '0';
+            renderWrapper.style.left = '0';
+            renderWrapper.style.width = '100vw';
+            renderWrapper.style.height = '100vh';
+            renderWrapper.style.backgroundColor = '#ffffff';
+            renderWrapper.style.zIndex = '9999';
+            renderWrapper.style.overflow = 'auto';
+            
+            // 2. Pantalla de carga para el usuario
+            const loadingMsg = document.createElement('div');
+            loadingMsg.innerHTML = '<h2 style="text-align:center; padding: 40px; color: #0ea5e9; font-family: sans-serif;">Generando Documento PDF...<br><span style="font-size:14px; color:#64748b;">Por favor espere unos segundos.</span></h2>';
+            renderWrapper.appendChild(loadingMsg);
+            
+            // 3. Inyectar HTML con estilos propios
+            const printContent = document.createElement('div');
+            printContent.innerHTML = generarHTMLParaPDF(); 
+            renderWrapper.appendChild(printContent);
+            
+            document.body.appendChild(renderWrapper);
+
+            let btn = document.getElementById('btnImprimir');
+            let btnOrigText = btn.innerText;
+            btn.innerText = "Procesando...";
+            btn.disabled = true;
+
+            const opt = {
+                margin:       [10, 10, 10, 10], 
+                filename:     nombreReporte + '.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 1.5, useCORS: true, allowTaint: true }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // 4. Temporizador critico: 500ms para que el navegador decodifique imagenes y renderice en móvil antes de tomar foto
+            setTimeout(() => {
+                html2pdf().set(opt).from(printContent).save().then(() => {
+                    document.body.removeChild(renderWrapper);
+                    btn.innerText = btnOrigText;
+                    btn.disabled = false;
+                }).catch(e => {
+                    console.error("PDF Error: ", e);
+                    document.body.removeChild(renderWrapper);
+                    btn.innerText = btnOrigText;
+                    btn.disabled = false;
+                    alert("Hubo un problema al generar el documento PDF.");
+                });
+            }, 500);
         }
 
         window.onload = function() {
