@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NEFUSAC - MEDICION VENTANAS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg-body: #0f172a;
             --panel-bg: #1e293b;
+            --input-bg: #0f172a;
             --border: #334155;
             --primary: #0ea5e9;
+            --primary-hover: #0284c7;
             --text-main: #f8fafc;
             --text-label: #94a3b8;
             --danger: #ef4444;
@@ -66,6 +67,35 @@
         .miniatura-item img { max-width: 100%; height: auto; border: 1px solid #cbd5e1; border-radius: 4px;}
         .miniatura-item span { display: block; font-size: 11px; margin-top: 8px; font-weight: 700; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .btn-eliminar { position: absolute; top: -8px; right: -8px; background: var(--danger); border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; }
+
+        /* ESTILOS DE IMPRESIÓN OFICIAL (NATIVA) */
+        #printArea { display: none; }
+        @media print {
+            @page { size: A4 portrait; margin: 8mm; }
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { display: block; position: absolute; left: 0; top: 0; width: 100%; }
+            body { background: white; margin: 0; padding: 0; font-family: Arial, sans-serif; color: black; }
+            
+            .print-document { width: 100%; }
+            .print-page { width: 100%; page-break-after: always; padding: 0mm; box-sizing: border-box; background: white; }
+            
+            table.nefusac-form { width: 100%; border-collapse: collapse; border: 2px solid #000; font-size: 11px; margin-bottom: 20px; table-layout: fixed; color: black;}
+            table.nefusac-form th, table.nefusac-form td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: middle; }
+            
+            .cell-title { text-align: center !important; font-weight: bold; font-size: 16px !important; letter-spacing: 1px;}
+            .cell-logo { text-align: center !important; font-weight: 900; font-size: 18px !important; width: 25%;}
+            .cell-meta { font-size: 9px !important; line-height: 1.4; width: 20%;}
+            .cell-header-dark { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; font-size: 12px !important; text-align: center !important;}
+            .cell-header-light { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; font-size: 10px !important; text-align: center !important;}
+            .cell-value { font-weight: normal; color: #000;}
+            
+            .window-block { margin-bottom: 25px; border: 2px solid #000; border-top: none; page-break-inside: avoid; }
+            .window-header { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; font-size: 13px !important; text-align: center !important; padding: 8px; border-bottom: 2px solid #000; border-top: 2px solid #000;}
+            .window-canvas { text-align: center !important; padding: 15px !important; background: #fff;}
+            .window-canvas img { max-width: 100%; max-height: 400px; object-fit: contain; }
+            .cell-signatures { height: 70px; }
+        }
 
         @media (max-width: 1024px) {
             .layout { flex-direction: column; height: auto; }
@@ -238,7 +268,7 @@
                                     <option value="oscilobat_izq">Oscilobatiente (MD)</option>
                                     <option value="oscilobat_der">Oscilobatiente (MI)</option>
                                     <option value="proyectante">Proyectante</option>
-                                    <option value="oscilante">Oscilante</option>
+                                    <option value="oscilante">Oscilante (Abatible)</option>
                                 </select>
                             </div>
                             <div class="form-group" id="wrapPañoDer">
@@ -252,7 +282,7 @@
                                     <option value="oscilobat_der">Oscilobatiente (MI)</option>
                                     <option value="oscilobat_izq">Oscilobatiente (MD)</option>
                                     <option value="proyectante">Proyectante</option>
-                                    <option value="oscilante">Oscilante</option>
+                                    <option value="oscilante">Oscilante (Abatible)</option>
                                 </select>
                             </div>
                         </div>
@@ -296,16 +326,20 @@
         </div>
     </div>
 
+    <!-- CONTENEDOR OCULTO PARA IMPRESIÓN OFICIAL NATIVA -->
+    <div id="printArea"></div>
+
     <script>
         const canvas = document.getElementById('lienzo');
         const ctx = canvas.getContext('2d');
         const anchoMarco = 55, anchoHoja = 45, anchoPoste = 55; 
         let listaPlanos = [];
 
-        let fechaLocal = new Date();
-        let anio = fechaLocal.getFullYear();
-        let mes = ('0' + (fechaLocal.getMonth() + 1)).slice(-2);
-        let dia = ('0' + fechaLocal.getDate()).slice(-2);
+        // Inicializar Fecha actual adaptada a huso horario local (-05)
+        let fLocal = new Date();
+        let anio = fLocal.getFullYear();
+        let mes = ('0' + (fLocal.getMonth() + 1)).slice(-2);
+        let dia = ('0' + fLocal.getDate()).slice(-2);
         document.getElementById('g_fecha').value = anio + '-' + mes + '-' + dia;
 
         function getMinimo(id1, id2, id3) {
@@ -387,12 +421,14 @@
         function drawMullion(x, y, w, h, isVertical) {
             ctx.save();
             ctx.fillStyle = '#f1f5f9'; ctx.fillRect(x,y,w,h);
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            
+            ctx.fillStyle = '#ffffff';
             if(isVertical) ctx.fillRect(x,y,4,h); else ctx.fillRect(x,y,w,4);
-            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            
+            ctx.fillStyle = '#cbd5e1';
             if(isVertical) ctx.fillRect(x+w-4,y,4,h); else ctx.fillRect(x,y+h-4,w,4);
             
-            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.strokeRect(x,y,w,h);
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5; ctx.strokeRect(x,y,w,h);
             ctx.restore();
         }
 
@@ -405,7 +441,7 @@
             
             let gx = x + gasket, gy = y + gasket, gw = w - gasket*2, gh = h - gasket*2;
             
-            // Fondo cristal limpio
+            // Fondo cristal
             let glassGrad = ctx.createLinearGradient(gx, gy, gx + gw, gy + gh);
             glassGrad.addColorStop(0, "#f0f9ff");
             glassGrad.addColorStop(0.5, "#e0f2fe");
@@ -413,14 +449,25 @@
             ctx.fillStyle = glassGrad;
             ctx.fillRect(gx, gy, gw, gh);
             
-            // Reflejo superior muy sutil
+            // Reflejo diagonal superior
+            ctx.beginPath();
+            ctx.moveTo(gx, gy); ctx.lineTo(gx + gw*0.4, gy); ctx.lineTo(gx, gy + gh*0.8); ctx.closePath();
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            ctx.fill();
+            
+            // Reflejo diagonal inferior
+            ctx.beginPath();
+            ctx.moveTo(gx + gw*0.5, gy); ctx.lineTo(gx + gw*0.7, gy); ctx.lineTo(gx + gw*0.2, gy + gh); ctx.lineTo(gx, gy + gh); ctx.closePath();
             ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-            ctx.fillRect(gx, gy, gw, gh * 0.15);
+            ctx.fill();
 
+            // Linea interna vidrio
             ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
             ctx.strokeRect(gx, gy, gw, gh);
             ctx.restore();
         }
+
+        // ==========================================
 
         function dibujarCota(x1, y1, x2, y2, texto, isVertical) {
             if(Math.abs(x2-x1) < 20 && !isVertical) return; 
@@ -434,11 +481,11 @@
             ctx.beginPath(); ctx.moveTo(x2 - tick, y2 + tick); ctx.lineTo(x2 + tick, y2 - tick); ctx.stroke();
             let txtW = ctx.measureText(texto).width + 16;
             if (!isVertical) { 
-                ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(x1 + (x2-x1)/2 - txtW/2, y1 - 24, txtW, 20);
+                ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(x1 + (x2-x1)/2 - txtW/2, y1 - 24, txtW, 20);
                 ctx.fillStyle = "#0f172a"; ctx.fillText(texto, x1 + (x2 - x1) / 2, y1 - 14);
             } else { 
                 ctx.translate(x1 - 24, y1 + (y2 - y1) / 2); ctx.rotate(-Math.PI / 2);
-                ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(-txtW/2, -10, txtW, 20);
+                ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(-txtW/2, -10, txtW, 20);
                 ctx.fillStyle = "#0f172a"; ctx.fillText(texto, 0, 0);
             }
             ctx.restore();
@@ -470,22 +517,24 @@
 
         function dibujarSeccion(x, y, w, h, tipo, scale, castShadow) {
             ctx.save();
-            if (castShadow) {
-                // Sombra de superposición para corredizas
-                ctx.shadowColor = 'rgba(0,0,0,0.4)';
-                ctx.shadowBlur = 10;
-                ctx.shadowOffsetX = (tipo.includes('izq')) ? -6 : 6; 
+            
+            // Sombra para simular superposición de hojas corredizas (Z-Index)
+            if (castShadow && tipo.startsWith('corrediza')) {
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = tipo.includes('izq') ? -6 : 6;
             }
 
             if (tipo !== 'fijo' && tipo !== 'fijo_puro') {
                 const hojaS = anchoHoja * scale;
                 drawBevel(x, y, w, h, hojaS, false);
-                ctx.shadowColor = 'transparent'; 
+                ctx.shadowColor = 'transparent'; // Limpiar la sombra para no afectar al cristal
                 drawGlass(x + hojaS, y + hojaS, w - hojaS*2, h - hojaS*2);
                 dibujarSimbolo(x + hojaS, y + hojaS, w - hojaS*2, h - hojaS*2, tipo);
             } else {
                 drawGlass(x, y, w, h);
             }
+            
             ctx.restore();
         }
 
@@ -527,8 +576,9 @@
             let hasFijoCentro = (document.getElementById('tipoFijoCentro').value === 'si');
             let anchoFijoCentroReal = parseFloat(document.getElementById('anchoFijoCentro').value) || 0;
 
+            // TITULO DEL CANVAS
             ctx.fillStyle = '#0f172a'; ctx.font = '800 24px "Inter", Arial'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-            ctx.fillText("Ref: " + v_vano + " - " + document.getElementById('v_ambiente').value, 40, 40);
+            ctx.fillText("Ref: " + document.getElementById('v_ambiente').value + " (" + v_vano + ")", 40, 40);
 
             if(anchoReal <= 0 || altoReal <= 0) return;
 
@@ -550,9 +600,8 @@
 
             // 1. MARCO EXTERIOR 3D
             drawBevel(x0, y0, w, h, marcoS, true);
-            ctx.fillStyle = '#fff'; ctx.fillRect(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2);
 
-            // POSTE = 0 (Un solo paño operable o fijo)
+            // POSTE = 0 (Un solo paño interior gigante)
             if (posteReal === 0 && !hasBandSup && !hasBandInf && !hasLatIzq && !hasLatDer) {
                 dibujarSeccion(x0 + marcoS, y0 + marcoS, w - marcoS*2, h - marcoS*2, tipoIzq, scale, false);
                 dibujarCota(x0, y0 - 55, x0 + w, y0 - 55, anchoReal + ' mm', false); 
@@ -644,7 +693,7 @@
                     if (esCorrediza) {
                         let wIzq = (xPoste1 - ix) + (hojaS / 2); let xCentro = xPoste1 - (hojaS / 2);
                         let wCentro = (xPoste2 - xPoste1) + hojaS; let xDer = xPoste2 - (hojaS / 2); let wDer = iendX - xDer;
-                        dibujarSeccion(xCentro, iy, wCentro, ih, 'fijo', scale, false); 
+                        dibujarSeccion(xCentro, iy, wCentro, ih, 'fijo_puro', scale, false); 
                         dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, true); 
                         dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, true); 
                     } else {
@@ -661,13 +710,15 @@
                 } else {
                     if (esCorrediza) {
                         let wIzq = (cEje - ix) + (hojaS / 2); let xDer = cEje - (hojaS / 2); let wDer = iendX - xDer;
+                        
+                        // Z-Index para asegurar que la hoja frontal se dibuje última y proyecte su sombra sobre la hoja trasera
                         let isDerFront = tipoDer.startsWith('corrediza');
                         if (isDerFront) {
-                            dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, false);
-                            dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, true);
+                            dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, false); // Trasera
+                            dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, true); // Frontal
                         } else {
-                            dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, false);
-                            dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, true);
+                            dibujarColumnaParcial(xDer, iy, wDer, ih, tipoDer, false, false); // Trasera
+                            dibujarColumnaParcial(ix, iy, wIzq, ih, tipoIzq, true, true); // Frontal
                         }
                     } else {
                         let wIzq = (cEje - posteS/2) - ix; let xDer = cEje + posteS/2; let wDer = iendX - xDer;
@@ -679,6 +730,7 @@
                     dibujarCota(cEje, y0 + h + 55, x0 + w, y0 + h + 55, Math.round((x0+w-cEje)/scale) + ' mm', false); 
                 }
             } else if (posteReal === 0 && iw > 0 && ih > 0) {
+                // Poste 0 pero con banderola o lateral activo
                 dibujarColumnaParcial(ix, iy, iw, ih, tipoIzq, true, false);
             }
 
@@ -693,25 +745,19 @@
             if(hasBandInf && bandInfReal > 0) dibujarCota(x0 - 105, y0 + h - (bandInfReal*scale), x0 - 105, y0 + h, bandInfReal + ' mm', true);
         }
 
-        function descargarImagen(dataUrl, nombreArchivo) {
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = dataUrl;
-            a.download = nombreArchivo;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => { document.body.removeChild(a); }, 100);
+        function exportarIndividual() {
+            let tituloRaw = document.getElementById('v_vano').value.trim() || "Plano_Ventana";
+            let nombreArchivo = tituloRaw.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png';
+            const link = document.createElement('a');
+            link.download = nombreArchivo; link.href = canvas.toDataURL('image/png'); link.click();
         }
 
-        function guardarYDescargar() {
+        function guardarPlano() {
             try {
-                const imgData = canvas.toDataURL('image/png', 1.0);
-                let v_vano_raw = document.getElementById('v_vano').value || "V-00";
-                
                 let plano = {
                     id: Date.now(),
-                    img: imgData,
-                    vano: v_vano_raw,
+                    img: canvas.toDataURL('image/png'),
+                    vano: document.getElementById('v_vano').value || "V-00",
                     ambiente: document.getElementById('v_ambiente').value || "-",
                     color: document.getElementById('v_color').value || "-",
                     manija: document.getElementById('v_manija').value || "-",
@@ -721,23 +767,25 @@
                     seguridad: document.getElementById('v_seguridad').value || "-",
                     observacion: document.getElementById('v_observacion').value || "-"
                 };
-                
                 listaPlanos.push(plano);
                 renderizarGaleria();
                 
-                let nombreSeguro = v_vano_raw.replace(/[^a-z0-9]/gi, '_').toUpperCase() + '_Plano.png';
-                descargarImagen(imgData, nombreSeguro);
-                
-                let textPart = v_vano_raw.replace(/[0-9]/g, '');
-                let numPart = v_vano_raw.replace(/[^0-9]/g, '');
+                let v_input = document.getElementById('v_vano');
+                let textPart = v_input.value.replace(/[0-9]/g, '');
+                let numPart = v_input.value.replace(/[^0-9]/g, '');
                 if(numPart) {
                     let nextNum = parseInt(numPart) + 1;
-                    document.getElementById('v_vano').value = textPart + nextNum.toString().padStart(numPart.length, '0');
+                    v_input.value = textPart + nextNum.toString().padStart(numPart.length, '0');
                 }
             } catch (e) {
-                console.error(e);
-                alert("Error al guardar la imagen. Reintenta.");
+                console.error("Error al guardar:", e);
+                alert("Ocurrió un error al procesar la imagen.");
             }
+        }
+
+        function guardarYDescargar() {
+            exportarIndividual();
+            guardarPlano();
         }
 
         function eliminarPlano(index) {
@@ -747,7 +795,8 @@
 
         function renderizarGaleria() {
             const galeria = document.getElementById('galeria');
-            galeria.innerHTML = ''; 
+            const printArea = document.getElementById('printArea');
+            galeria.innerHTML = ''; printArea.innerHTML = ''; 
 
             if (listaPlanos.length === 0) {
                 galeria.innerHTML = '<span style="color:var(--text-label); font-size:13px; font-weight:normal;">No hay planos capturados.</span>';
@@ -757,25 +806,13 @@
 
             document.getElementById('btnImprimir').style.display = 'inline-flex';
 
-            listaPlanos.forEach((plano, index) => {
-                const item = document.createElement('div');
-                item.className = 'miniatura-item';
-                item.innerHTML = `
-                    <button class="btn-eliminar" onclick="eliminarPlano(${index})">✕</button>
-                    <img src="${plano.img}">
-                    <span title="${plano.vano} - ${plano.ambiente}">${plano.vano}</span>
-                `;
-                galeria.appendChild(item);
-            });
-        }
-
-        function generarHTMLParaPDF() {
             let g_cliente = document.getElementById('g_cliente').value || "";
             let g_ruc = document.getElementById('g_ruc').value || "";
             let g_contacto = document.getElementById('g_contacto').value || "";
             let g_telefono = document.getElementById('g_telefono').value || "";
             let g_direccion = document.getElementById('g_direccion').value || "";
             
+            // FORMATEAR FECHA A DD/MM/YYYY
             let g_fecha_raw = document.getElementById('g_fecha').value || "";
             let g_fecha = g_fecha_raw;
             if(g_fecha_raw) {
@@ -789,190 +826,138 @@
             let g_ven_n = document.getElementById('g_ventas_nombre').value || "";
             let g_ven_d = document.getElementById('g_ventas_dni').value || "";
 
-            let html = `
-                <style>
-                    .pdf-wrap { font-family: Arial, sans-serif; color: #000; font-size: 11px; width: 190mm; margin: 0 auto; background: #fff;}
-                    .pdf-wrap table { width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 25px; table-layout: fixed; }
-                    .pdf-wrap th, .pdf-wrap td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: middle; }
-                    .pdf-wrap .c-title { text-align: center; font-weight: bold; font-size: 16px; letter-spacing: 1px;}
-                    .pdf-wrap .c-logo { text-align: center; font-weight: 900; font-size: 18px; width: 25%;}
-                    .pdf-wrap .c-meta { font-size: 9px; width: 20%;}
-                    .pdf-wrap .c-dark { background-color: #e2e8f0; font-weight: bold; font-size: 12px; text-align: center;}
-                    .pdf-wrap .c-light { background-color: #f8fafc; font-weight: bold; font-size: 10px; text-align: center;}
-                    .pdf-wrap .c-val { font-weight: normal; color: #000;}
-                    .pdf-wrap .w-block { page-break-inside: avoid; margin-bottom: 25px; border: 2px solid #000; border-top: none; }
-                    .pdf-wrap .w-head { background-color: #e2e8f0; font-weight: bold; font-size: 13px; text-align: center; padding: 8px; border-bottom: 2px solid #000; border-top: 2px solid #000;}
-                    .pdf-wrap .w-img { text-align: center; padding: 15px; background: #fff;}
-                    .pdf-wrap .w-img img { max-width: 100%; max-height: 400px; object-fit: contain; }
-                    .pdf-wrap .page-break { page-break-after: always; height: 10px;}
-                </style>
-                <div class="pdf-wrap">
-                    <table>
+            // 1. GENERAR PÁGINA 1: CABECERA Y DATOS DE CLIENTE
+            let pdfDocument = `
+                <div class="print-document">
+                    <table class="nefusac-form">
                         <tr>
-                            <td rowspan="2" class="c-logo">NEFUSAC</td>
-                            <td rowspan="2" colspan="3" class="c-title">REPORTE DE REVISION TECNICA</td>
-                            <td colspan="2" class="c-meta">CODIGO: SIG-R-115</td>
+                            <td rowspan="2" class="cell-logo" style="width:25%;">NEFUSAC</td>
+                            <td rowspan="2" colspan="3" class="cell-title">REPORTE DE REVISION TECNICA</td>
+                            <td colspan="2" class="cell-meta" style="width:25%;">CODIGO: SIG-R-115</td>
                         </tr>
                         <tr>
-                            <td class="c-meta">VERSION: 00</td>
-                            <td class="c-meta">FECHA: 15/04/2026</td>
+                            <td class="cell-meta">VERSION: 00</td>
+                            <td class="cell-meta">FECHA: 15/04/2026</td>
                         </tr>
-                        <tr><td colspan="6" class="c-dark">DATOS DEL CLIENTE</td></tr>
+                        <tr><td colspan="6" class="cell-header-dark">DATOS DEL CLIENTE</td></tr>
                         <tr>
-                            <td colspan="2" class="c-light" style="width:33%;">CLIENTE O RAZÓN SOCIAL</td>
-                            <td colspan="2" class="c-val" style="width:33%;">${g_cliente}</td>
-                            <td class="c-light" style="width:16%;">R.U.C.</td>
-                            <td class="c-val" style="width:18%;">${g_ruc}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" class="c-light">PERSONA DE CONTACTO</td>
-                            <td colspan="2" class="c-val">${g_contacto}</td>
-                            <td class="c-light">TELEFONO</td>
-                            <td class="c-val">${g_telefono}</td>
+                            <td colspan="2" class="cell-header-light" style="width:33%;">CLIENTE O RAZÓN SOCIAL</td>
+                            <td colspan="2" class="cell-value" style="width:33%;">${g_cliente}</td>
+                            <td class="cell-header-light" style="width:16%;">R.U.C.</td>
+                            <td class="cell-value" style="width:18%;">${g_ruc}</td>
                         </tr>
                         <tr>
-                            <td colspan="2" class="c-light">DIRECCION</td>
-                            <td colspan="2" class="c-val">${g_direccion}</td>
-                            <td class="c-light">FECHA</td>
-                            <td class="c-val">${g_fecha}</td>
+                            <td colspan="2" class="cell-header-light">PERSONA DE CONTACTO</td>
+                            <td colspan="2" class="cell-value">${g_contacto}</td>
+                            <td class="cell-header-light">TELEFONO</td>
+                            <td class="cell-value">${g_telefono}</td>
                         </tr>
-                        <tr><td colspan="6" class="c-dark">DETALLE DE INSPECCION</td></tr>
                         <tr>
-                            <td colspan="2" class="c-light">PERSONAL PARTICIPANTE</td>
-                            <td colspan="4" class="c-val">${g_personal}</td>
+                            <td colspan="2" class="cell-header-light">DIRECCION</td>
+                            <td colspan="2" class="cell-value">${g_direccion}</td>
+                            <td class="cell-header-light">FECHA</td>
+                            <td class="cell-value">${g_fecha}</td>
+                        </tr>
+                        <tr><td colspan="6" class="cell-header-dark">DETALLE DE INSPECCION</td></tr>
+                        <tr>
+                            <td colspan="2" class="cell-header-light">PERSONAL PARTICIPANTE</td>
+                            <td colspan="4" class="cell-value">${g_personal}</td>
                         </tr>
                     </table>
             `;
 
-            listaPlanos.forEach((plano) => {
-                html += `
-                    <div class="w-block">
-                        <div class="w-head">VANO: ${plano.vano} - ${plano.ambiente}</div>
-                        <div class="w-img">
+            // 2. AGREGAR CADA VENTANA SECUENCIALMENTE
+            listaPlanos.forEach((plano, index) => {
+                // UI MIniature
+                const item = document.createElement('div');
+                item.className = 'miniatura-item';
+                item.innerHTML = `
+                    <button class="btn-eliminar" onclick="eliminarPlano(${index})">✕</button>
+                    <img src="${plano.img}">
+                    <span title="${plano.vano} - ${plano.ambiente}">${plano.vano}</span>
+                `;
+                galeria.appendChild(item);
+
+                // Add to PDF HTML
+                pdfDocument += `
+                    <div class="window-block">
+                        <div class="window-header">VANO: ${plano.vano} - ${plano.ambiente}</div>
+                        <div class="window-canvas">
                             <img src="${plano.img}" alt="Plano">
                         </div>
-                        <table style="margin-bottom:0; border-top:none; border-left:none; border-right:none;">
+                        <table class="nefusac-form" style="margin-bottom:0; border-top:none; border-left:none; border-right:none;">
                             <tr>
-                                <td class="c-light" style="width:16.6%;">COLOR</td>
-                                <td class="c-light" style="width:16.6%;">MANIJA</td>
-                                <td colspan="2" class="c-light" style="width:33.3%;">VIDRIO</td>
-                                <td colspan="2" class="c-light" style="width:33.3%;">AMBIENTE DE INST.</td>
+                                <td class="cell-header-light" style="width:16.6%;">COLOR</td>
+                                <td class="cell-header-light" style="width:16.6%;">MANIJA</td>
+                                <td colspan="2" class="cell-header-light" style="width:33.3%;">VIDRIO</td>
+                                <td colspan="2" class="cell-header-light" style="width:33.3%;">AMBIENTE DE INST.</td>
                             </tr>
                             <tr>
-                                <td class="c-val" style="text-align:center;">${plano.color}</td>
-                                <td class="c-val" style="text-align:center;">${plano.manija}</td>
-                                <td colspan="2" class="c-val" style="text-align:center;">${plano.vidrio}</td>
-                                <td colspan="2" class="c-val" style="text-align:center;">${plano.ambiente}</td>
+                                <td class="cell-value" style="text-align:center;">${plano.color}</td>
+                                <td class="cell-value" style="text-align:center;">${plano.manija}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.vidrio}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.ambiente}</td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="c-light">PISO DE INSTALACION</td>
-                                <td colspan="2" class="c-light">RUTA DE ACCESO</td>
-                                <td colspan="2" class="c-light">REQUISITOS DE SEGURIDAD</td>
+                                <td colspan="2" class="cell-header-light">PISO DE INSTALACION</td>
+                                <td colspan="2" class="cell-header-light">RUTA DE ACCESO</td>
+                                <td colspan="2" class="cell-header-light">REQUISITOS DE SEGURIDAD</td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="c-val" style="text-align:center;">${plano.piso}</td>
-                                <td colspan="2" class="c-val" style="text-align:center;">${plano.ruta}</td>
-                                <td colspan="2" class="c-val" style="text-align:center;">${plano.seguridad}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.piso}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.ruta}</td>
+                                <td colspan="2" class="cell-value" style="text-align:center;">${plano.seguridad}</td>
                             </tr>
-                            <tr><td colspan="6" class="c-light" style="text-align:left;">OBSERVACIONES:</td></tr>
-                            <tr><td colspan="6" class="c-val" style="height: 50px; vertical-align:top;">${plano.observacion}</td></tr>
+                            <tr>
+                                <td colspan="6" class="cell-header-light" style="text-align:left !important;">OBSERVACIONES:</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="cell-value" style="height: 50px; vertical-align:top;">${plano.observacion}</td>
+                            </tr>
                         </table>
                     </div>
                 `;
             });
 
-            html += `
-                    <div class="page-break"></div>
-                    <table style="page-break-inside: avoid; margin-top: 20px;">
+            // 3. AGREGAR BLOQUE DE FIRMAS AL FINAL (4 Columnas para cuadrar exacto 50/50)
+            pdfDocument += `
+                    <table class="nefusac-form" style="page-break-inside: avoid; margin-top: 20px;">
                         <tr>
-                            <td colspan="2" class="c-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - TECNICO</td>
-                            <td colspan="2" class="c-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - EJECUTIVO DE VENTAS</td>
+                            <td colspan="2" class="cell-header-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - TECNICO</td>
+                            <td colspan="2" class="cell-header-dark" style="width:50%;">REPRESENTANTE DE NEFUSAC - EJECUTIVO DE VENTAS</td>
                         </tr>
                         <tr>
-                            <td class="c-light" style="width:15%;">NOMBRE</td>
-                            <td class="c-val" style="width:35%;">${g_tech_n}</td>
-                            <td class="c-light" style="width:15%;">NOMBRE</td>
-                            <td class="c-val" style="width:35%;">${g_ven_n}</td>
+                            <td class="cell-header-light" style="width:15%;">NOMBRE</td>
+                            <td class="cell-value" style="width:35%;">${g_tech_n}</td>
+                            <td class="cell-header-light" style="width:15%;">NOMBRE</td>
+                            <td class="cell-value" style="width:35%;">${g_ven_n}</td>
                         </tr>
                         <tr>
-                            <td class="c-light">DNI</td>
-                            <td class="c-val">${g_tech_d}</td>
-                            <td class="c-light">DNI</td>
-                            <td class="c-val">${g_ven_d}</td>
+                            <td class="cell-header-light">DNI</td>
+                            <td class="cell-value">${g_tech_d}</td>
+                            <td class="cell-header-light">DNI</td>
+                            <td class="cell-value">${g_ven_d}</td>
                         </tr>
                         <tr>
-                            <td colspan="2" class="c-light" style="text-align:center;">FIRMA</td>
-                            <td colspan="2" class="c-light" style="text-align:center;">FIRMA</td>
+                            <td colspan="2" class="cell-header-light" style="text-align:center !important;">FIRMA</td>
+                            <td colspan="2" class="cell-header-light" style="text-align:center !important;">FIRMA</td>
                         </tr>
                         <tr>
-                            <td colspan="2" style="height: 80px;"></td>
-                            <td colspan="2" style="height: 80px;"></td>
+                            <td colspan="2" class="cell-signatures"></td>
+                            <td colspan="2" class="cell-signatures"></td>
                         </tr>
                     </table>
-                </div>
+                </div> <!-- End print-document -->
             `;
-            return html;
+
+            printArea.innerHTML = pdfDocument;
         }
 
         function imprimirPDF() { 
-            if (listaPlanos.length === 0) {
-                alert("Primero debes guardar al menos un plano en la lista.");
-                return;
-            }
-
             let nombreReporte = document.getElementById('nombrePDF').value.trim() || "Reporte_NEFUSAC";
-            nombreReporte = nombreReporte.replace(/[^a-zA-Z0-9_\- ]/g, "_");
-
-            // 1. Crear un contenedor temporal visible en pantalla completa (Flash Render)
-            const renderWrapper = document.createElement('div');
-            renderWrapper.style.position = 'fixed';
-            renderWrapper.style.top = '0';
-            renderWrapper.style.left = '0';
-            renderWrapper.style.width = '100vw';
-            renderWrapper.style.height = '100vh';
-            renderWrapper.style.backgroundColor = '#ffffff';
-            renderWrapper.style.zIndex = '9999';
-            renderWrapper.style.overflow = 'auto';
-            
-            // 2. Pantalla de carga para el usuario
-            const loadingMsg = document.createElement('div');
-            loadingMsg.innerHTML = '<h2 style="text-align:center; padding: 40px; color: #0ea5e9; font-family: sans-serif;">Generando Documento PDF...<br><span style="font-size:14px; color:#64748b;">Por favor espere unos segundos.</span></h2>';
-            renderWrapper.appendChild(loadingMsg);
-            
-            // 3. Inyectar HTML con estilos propios
-            const printContent = document.createElement('div');
-            printContent.innerHTML = generarHTMLParaPDF(); 
-            renderWrapper.appendChild(printContent);
-            
-            document.body.appendChild(renderWrapper);
-
-            let btn = document.getElementById('btnImprimir');
-            let btnOrigText = btn.innerText;
-            btn.innerText = "Procesando...";
-            btn.disabled = true;
-
-            const opt = {
-                margin:       [10, 10, 10, 10], 
-                filename:     nombreReporte + '.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 1.5, useCORS: true, allowTaint: true }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // 4. Temporizador critico: 500ms para que el navegador decodifique imagenes y renderice en móvil antes de tomar foto
-            setTimeout(() => {
-                html2pdf().set(opt).from(printContent).save().then(() => {
-                    document.body.removeChild(renderWrapper);
-                    btn.innerText = btnOrigText;
-                    btn.disabled = false;
-                }).catch(e => {
-                    console.error("PDF Error: ", e);
-                    document.body.removeChild(renderWrapper);
-                    btn.innerText = btnOrigText;
-                    btn.disabled = false;
-                    alert("Hubo un problema al generar el documento PDF.");
-                });
-            }, 500);
+            document.title = nombreReporte.replace(/[^a-zA-Z0-9_\- ]/g, "_");
+            window.print();
+            setTimeout(() => { document.title = "MEDICION VENTANAS PVC"; }, 1000);
         }
 
         window.onload = function() {
